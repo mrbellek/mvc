@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+	<head>
+	{% include "_head.twig" %}
+	{% block css %}{% endblock %}
+	{% block js %}{% endblock %}
+	</head>
+
+	<body class="page {% block body_class %}{% endblock %}">
+		<header>
+		</header>
+
+		<main>
+			{% block main_content %}
+			{% endblock main_content %}
+		</main>
+
+		{% block main_content_no_container %}
+		{% endblock main_content_no_container %} 
+	</body>
+</html>

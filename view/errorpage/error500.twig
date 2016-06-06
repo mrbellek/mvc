@@ -1,0 +1,48 @@
+{% extends "_layout.twig" %}
+
+{% block main_content %}
+
+    <div class="row">
+        <div class="col-md-12">
+            <h1>Serverfout</h1>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">  
+			<div class="panel panel-default">
+				<div class="panel-body">
+					<form class="form-horizontal">
+                        <fieldset>
+							<p>Er is een onverwachte fout opgetreden op de pagina die je probeerde te bereiken. Probeer het later nog eens.</p>
+							<div class="form-group">
+								<label for="form_selection_id" class="control-label col-lg-3 optional">Deze pagina gaf een fout:</label>
+								<div class="col-lg-9">
+									<p class="form-control-static"><a href="{{ sUrl}} ">{{ sUrl|slice(0, 100) }}</a></p>
+								</div>
+							</div>
+							{% if sReferer %}
+							<div class="form-group">
+								<label for="form_selection_id" class=" control-label col-lg-3 optional">Je kwam daar via de link:</label>
+								<div class="col-lg-9">
+									<p class="form-control-static"><a href="{{ sReferer }} ">{{ sReferer|slice(0, 100) }}</a></p>
+								</div>
+							</div>
+							{% endif %}
+						</fieldset>
+
+                        <fieldset>
+                            <div class="form-group">
+                                <div class="col-lg-9 col-lg-offset-3">
+                                    <a href="/" class="btn btn-success">Terug naar homepage</a>
+                                </div>
+                            </div>
+
+                        </fieldset>
+					</form>
+				</div>
+			</div>
+		</div>
+	</div>
+ 
+{% endblock main_content %}

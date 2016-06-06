@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+	<head>
+	{% include "_head.twig" %}
+	{% block css %}{% endblock %}
+	{% block js %}{% endblock %}
+	</head>
+
+	<body class="page {% block body_class %}{% endblock %}">
+		<header>
+			{% if session %}
+				{% include "_nav.twig" %}
+			{% else %}
+				{% include "_nav_nologin.twig" %}
+			{% endif %}
+		</header>
+
+		<div class="container margin-top-30">
+			{% block messages %}
+				
+				{% if _message %}
+					<div class="alert alert-{{ _message.type }}">
+						<a href="#" class="close" data-dismiss="alert">&times;</a>
+						{{ _message.message|raw }}
+					</div>
+				{% endif %}
+
+			{% endblock messages %}
+		</div>
+
+		<main class="container">
+			{% block main_content %}
+			{% endblock main_content %}
+
+			<p style="color: grey; font-size: 8pt;">Page rendered: {{ timer_pageload }}. MySQL: {{ timer_database.time }}s ({{ timer_database.count }} queries)</p>
+		</main>
+
+		{% block main_content_no_container %}
+		{% endblock main_content_no_container %} 
+	</body>
+</html>

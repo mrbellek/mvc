@@ -1,0 +1,34 @@
+{# disable pagination if only 1 page #}
+{% if pagination and pagination.last > 1 %}
+<nav style="text-align: center;">
+	<ul class="pagination">
+
+		{# first box always links to previous page #}
+		<li {% if pagination.current == pagination.first %}class="disabled"{% endif %}>
+		<a href="{{ pagination.base }}{{ pagination.current == pagination.first ? pagination.first : pagination.current - 1 }}{% if search %}/{{ search}}{% endif %}" aria-label="Previous">
+				<span aria-hidden="true">&laquo;</span>
+			</a>
+		</li>
+
+		{# hide pages that are more than x (maxroom) steps away from current page to prevent overly long pagination row #}
+		{% for i in pagination.first..pagination.last %}
+
+			{% if (i < pagination.current - pagination.maxroom or i > pagination.current + pagination.maxroom) and i != pagination.last and i != pagination.first %}
+				<li class="pagination-hidden {{ i == pagination.current - pagination.maxroom - 1 or i == pagination.current + pagination.maxroom + 1 ? "ellips" : "" }}"><a>&hellip;</a></li>
+			{% else %}
+
+				{# mark current page box as active #}
+				<li {% if pagination.current == i %}class="active"{% endif %}><a href="{{ pagination.base }}{{ i }}{% if search %}/{{ search}}{% endif %}">{{ i }}</a></li>
+			{% endif %}
+
+		{% endfor %}
+
+		{# last box always links to next page #}
+		<li {% if pagination.current == pagination.last %}class="disabled"{% endif %}>
+			<a href="{{ pagination.base }}{{ pagination.current == pagination.last ? pagination.last : pagination.current + 1 }}{% if search %}/{{ search}}{% endif %}" aria-label="Next">
+				<span aria-hidden="true">&raquo;</span>
+			</a>
+		</li>
+	</ul>
+</nav>
+{% endif %}

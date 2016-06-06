@@ -1,0 +1,17 @@
+{
+	"require": {
+		"phpmailer/phpmailer": "dev-master",
+		"twitter/bootstrap": "3.3.*@dev",
+		"twig/twig": "1.24.*@dev",
+		"ircmaxell/password-compat": "dev-master",
+		"php-amqplib/php-amqplib": "2.5.*"
+	},
+	"autoload": {
+		"psr-4": {
+			"MVC\\": "src/"
+		}
+	},
+	"config": {
+		"discard-changes": true
+	}
+}

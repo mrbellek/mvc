@@ -1,0 +1,21 @@
+#php_flag display_errors on
+
+<FilesMatch "\.(css|js|htaccess)$">
+#	Header Set Cache-Control "max-age=0, no-store"
+</FilesMatch>
+
+<IfModule mod_rewrite.c>
+	RewriteEngine on
+	RewriteRule ^(cache|config|lib|src|vendor|view) - [F,L,NC]
+
+	# special rule for bootstrap fonts because it's retarded
+	RewriteRule ^fonts/(.*)$ /public/fonts/$1 [L]
+
+	# favicon and apple touch bs
+	RewriteRule ^favicon.ico /public/img/logo_favicon.png [L]
+	RewriteRule ^apple-touch-icon-.* /public/img/logo.png [L]
+
+	RewriteCond %{REQUEST_FILENAME} !-f
+	RewriteCond %{REQUEST_FILENAME} !-d
+	RewriteRule ^(.*)$ /index.php?url=$1	[PT,L]
+</IfModule>
