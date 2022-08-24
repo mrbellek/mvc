@@ -35,7 +35,7 @@ class Controller {
 		$this->_action = $action;
 		$this->_model = $model;
 
-		$this->model = new $model;
+		$this->model = new $model();
 		$this->_template = new Template($controller, $action);
 
 		//caching is only available in controller because model is the wrong place for that

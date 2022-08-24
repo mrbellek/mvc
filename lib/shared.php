@@ -38,10 +38,10 @@ function callHook($url, $routing, $default) {
 	$model = 'MVC\\Model\\' . $controller;
 	$controller = 'MVC\\Controller\\' . $controller;
 
+    ini_set('session.gc_maxlifetime', 7 * 24 * 3600);
+    ini_set('session.cookie_lifetime', 7 * 24 * 3600);
 	session_set_cookie_params(7 * 24 * 3600, '/', '.' . $_SERVER['HTTP_HOST']);
 	session_start();
-	ini_set('session.gc_maxlifetime', 7 * 24 * 3600);
-	ini_set('session.cookie_lifetime', 7 * 24 * 3600);
 
 	require_once(DOCROOT . '/src/Func/include_dir.function.php');
 	include_dir(DOCROOT . '/src/Func');
@@ -49,17 +49,30 @@ function callHook($url, $routing, $default) {
 	//NB: we use the Composer autoloader to load our class php files for us (as well as packages)
 	require_once(DOCROOT . '/vendor/autoload.php');
 
-	//instancing a class that doesn't exists causes a FATAL, so try/catch doesn't work
+	//instancing a class that doesn't exist causes a FATAL, so try/catch doesn't work
 	if (!class_exists($controller)) {
-		header('Location: /errorpage/error404/' . base64_encode($_SERVER['REQUEST_URI']) . '/' . base64_encode(@$_SERVER['HTTP_REFERER']));
-		exit();
+        if (class_exists('MVC\\Controller\\Errorpage')) {
+            header(sprintf(
+                'Location: /errorpage/error404/%s/%s',
+                base64_encode($_SERVER['REQUEST_URI']),
+                base64_encode($_SERVER['HTTP_REFERER'] ?? '')
+            ));
+            exit();
+        } else {
+            printf('Controller class not found: %s', $controller);
+            exit();
+        }
 	}
 
 	//create controller object
 	try {
 		$dispatch = new $controller($model, $controllerName, $action);
 	} catch(Exception $e) {
-		header('Location: /errorpage/error404/' . base64_encode($_SERVER['REQUEST_URI']) . '/' . base64_encode(@$_SERVER['HTTP_REFERER']));
+		header(sprintf(
+            'Location: /errorpage/error404/%s/%s',
+            base64_encode($_SERVER['REQUEST_URI']),
+            base64_encode($_SERVER['HTTP_REFERER'] ?? '')
+        ));
 		exit();
 	}
 
@@ -67,11 +80,15 @@ function callHook($url, $routing, $default) {
 	if (method_exists($controller, $action)) {
 		call_user_func_array(array($dispatch, $action), $queryString);
 	} else {
-		header('Location: /errorpage/error404/' . base64_encode($_SERVER['REQUEST_URI']) . '/' . base64_encode(@$_SERVER['HTTP_REFERER']));
+		header(sprintf(
+            'Location: /errorpage/error404/%s/%s',
+            base64_encode($_SERVER['REQUEST_URI']),
+            base64_encode($_SERVER['HTTP_REFERER'] ?? '')
+        ));
 		exit();
 	}
 }
 
-define('TIMER_START', microtime(TRUE));
+define('TIMER_START', microtime(true));
 setReporting();
 callHook($url, $routing, $default);

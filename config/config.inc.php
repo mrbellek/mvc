@@ -1,14 +1,13 @@
 <?php
 //localhost and phpdev.nl: DEV
-if ($_SERVER['SERVER_ADDR'] == '127.0.0.1' ||
-	strpos($_SERVER['HTTP_HOST'], 'localhost') !== FALSE ||
-	strpos($_SERVER['HTTP_HOST'], 'phpdev.nl') !== FALSE) {
+if (strpos($_SERVER['HTTP_HOST'], 'localhost') !== false ||
+	strpos($_SERVER['HTTP_HOST'], 'phpdev.nl') !== false) {
 
 	define('ENV', 'dev');
-	define('DB_HOST', '');
+	define('DB_HOST', 'localhost');
 
 //phptest.nl: TEST
-} elseif (strpos($_SERVER['HTTP_HOST'], 'phptest.nl') !== FALSE) {
+} elseif (strpos($_SERVER['HTTP_HOST'], 'phptest.nl') !== false) {
 
 	define('ENV', 'test');
 	define('DB_HOST', '127.0.0.1');
@@ -19,9 +18,9 @@ if ($_SERVER['SERVER_ADDR'] == '127.0.0.1' ||
 	define('DB_HOST', 'db');
 }
 
-define('DB_DATABASE', '');
-define('DB_USERNAME', '');
-define('DB_PASSWORD', '');
+const DB_DATABASE = 'mvc';
+const DB_USERNAME = 'mvc';
+const DB_PASSWORD = 'mYmVc2022';
 
-define('SALT', 'MBSalty');
-define('WATTS', 'AllMyWatts');
+const SALT = 'MBSalty';
+const WATTS = 'AllMyWatts';

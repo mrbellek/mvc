@@ -1,13 +1,14 @@
 <?php
 namespace MVC\Lib;
-use \PDO;
-use \Exception;
+use PDO;
+use Exception;
 
 class Db {
 
     private static $instance;
 	private $iQueryCount = 0;
 	private $lQueryTimer = 0;
+    private PDO $PDO;
 
     private function __construct() {
         $dsn = 'mysql:host=' . DB_HOST . ';dbname=' . DB_DATABASE;
@@ -18,7 +19,12 @@ class Db {
 			if (defined('ENV') && ENV == 'prod') {
 				throw new Exception(sprintf('Database connection to %s failed: %s', DB_HOST, $e->getMessage()));
 			} else {
-				die(sprintf('Database connection to %s failed. Check config file and database server?', DB_HOST));
+				printf(
+                    'Database connection to %s failed. Check config file and database server?<br>Error message: %s<hr>',
+                    DB_HOST,
+                    $e->getMessage()
+                );
+                exit();
 			}
 		}
     }
