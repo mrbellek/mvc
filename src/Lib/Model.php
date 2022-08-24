@@ -1,26 +1,34 @@
 <?php
+declare(strict_types=1);
+
 namespace MVC\Lib;
+
 use MVC\Lib\Db;
 
 class Model {
 
-	protected $_model;
+    protected string $_model;
+    protected ?Db $sql;
 
-	public function __construct() {
-		$this->_model = get_class($this);
-		$this->SQL = Db::getInstance();
-	}
+    public function __construct()
+    {
+        $this->_model = get_class($this);
+        $this->sql = Db::getInstance();
+    }
 
-	public function __destruct() {
-		$this->SQL = null;
-		unset($this->SQL);
-	}
+    public function __destruct()
+    {
+        $this->sql = null;
+        unset($this->sql);
+    }
 
-	public function __sleep() {
-		return array('_model');
-	}
+    public function __sleep()
+    {
+        return ['_model'];
+    }
 
-	public function __wakeup() {
-		$this->SQL = Db::getInstance();
-	}
+    public function __wakeup()
+    {
+        $this->sql = Db::getInstance();
+    }
 }

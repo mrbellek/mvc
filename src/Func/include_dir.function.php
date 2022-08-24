@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 //includes all files in a folder
 function include_dir($dir) {
     if ($handle = opendir($dir)) {
@@ -11,4 +13,4 @@ function include_dir($dir) {
             }
         }
     }
-} 
+}

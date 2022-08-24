@@ -1,30 +1,34 @@
 <?php
-function setReporting() {
-	if (defined('ENV') && ENV == 'dev' || ENV == 'test') {
-		//dev
-		error_reporting(E_ALL);
-		ini_set('display_errors', 'On');
-	} else {
-		//prod
-		error_reporting(E_ALL);
-		ini_set('display_errors', 'On');
-		//ini_set('display_errors', 'Off');
-		ini_set('log_errors', 'On');
-		ini_set('error_log', DOCROOT . '/tmp/logs/error.log');
-	}
+declare(strict_types=1);
+
+function setReporting()
+{
+    if (defined('ENV') && ENV == 'dev' || ENV == 'test') {
+        //dev
+        error_reporting(E_ALL);
+        ini_set('display_errors', 'On');
+    } else {
+        //prod
+        error_reporting(E_ALL);
+        ini_set('display_errors', 'Off');
+        ini_set('log_errors', 'On');
+    }
 }
 
-function callHook($url, $routing, $default) {
-	$urlArray = explode('/', $url);
-	//default controller
-	$urlArray[0] = (empty($urlArray[0]) ? $default['controller'] : $urlArray[0]);
-	//default action
-	$urlArray[1] = (empty($urlArray[1]) ? $default['action'] : $urlArray[1]);
+function callHook(string $url, array $routing, array $default)
+{
+    $urlArray = explode('/', $url);
 
-	//pretty urls: http://domain.com/controller/action/queryString
-	$controller = array_shift($urlArray);
-	$action = array_shift($urlArray);
-	$queryString = $urlArray;
+    //default controller
+    $urlArray[0] = (empty($urlArray[0]) ? $default['controller'] : $urlArray[0]);
+
+    //default action
+    $urlArray[1] = (empty($urlArray[1]) ? $default['action'] : $urlArray[1]);
+
+    //pretty urls, e.g.: http://domain.com/controller/action/queryString
+    $controller = array_shift($urlArray);
+    $action = array_shift($urlArray);
+    $queryString = $urlArray;
 
     //custom routing
     if (isset($routing[$controller . '/' . $action])) {
@@ -33,60 +37,60 @@ function callHook($url, $routing, $default) {
         $action = $reroute[$controller];
     }
 
-	$controllerName = $controller;
-	$controller = ucwords($controller);
-	$model = 'MVC\\Model\\' . $controller;
-	$controller = 'MVC\\Controller\\' . $controller;
+    $controllerName = $controller;
+    $controller = ucwords($controller);
+    $model = 'MVC\\Model\\' . $controller;
+    $controller = 'MVC\\Controller\\' . $controller;
 
-    ini_set('session.gc_maxlifetime', 7 * 24 * 3600);
-    ini_set('session.cookie_lifetime', 7 * 24 * 3600);
-	session_set_cookie_params(7 * 24 * 3600, '/', '.' . $_SERVER['HTTP_HOST']);
-	session_start();
+    $httpHost = filter_input(INPUT_SERVER, 'HTTP_HOST');
+    $requestUri = filter_input(INPUT_SERVER, 'REQUEST_URI');
+    $httpReferrer = filter_input(INPUT_SERVER, 'HTTP_REFERER');
 
-	require_once(DOCROOT . '/src/Func/include_dir.function.php');
-	include_dir(DOCROOT . '/src/Func');
+    ini_set('session.gc_maxlifetime', strval(7 * 24 * 3600));
+    ini_set('session.cookie_lifetime', strval(7 * 24 * 3600));
+    session_set_cookie_params(7 * 24 * 3600, '/', '.' . $httpHost);
+    session_start();
 
-	//NB: we use the Composer autoloader to load our class php files for us (as well as packages)
-	require_once(DOCROOT . '/vendor/autoload.php');
+    require_once(DOCROOT . '/src/Func/include_dir.function.php');
+    include_dir(DOCROOT . '/src/Func');
 
-	//instancing a class that doesn't exist causes a FATAL, so try/catch doesn't work
-	if (!class_exists($controller)) {
+    //NB: we use the Composer autoloader to load our class php files for us (as well as packages)
+    require_once(DOCROOT . '/vendor/autoload.php');
+
+    //instancing a class that doesn't exist causes a FATAL, so try/catch doesn't work
+    if (!class_exists($controller)) {
         if (class_exists('MVC\\Controller\\Errorpage')) {
-            header(sprintf(
-                'Location: /errorpage/error404/%s/%s',
-                base64_encode($_SERVER['REQUEST_URI']),
-                base64_encode($_SERVER['HTTP_REFERER'] ?? '')
-            ));
-            exit();
+            redirectNotFound($requestUri, $httpReferrer);
         } else {
             printf('Controller class not found: %s', $controller);
             exit();
         }
-	}
+    }
 
-	//create controller object
-	try {
-		$dispatch = new $controller($model, $controllerName, $action);
-	} catch(Exception $e) {
-		header(sprintf(
-            'Location: /errorpage/error404/%s/%s',
-            base64_encode($_SERVER['REQUEST_URI']),
-            base64_encode($_SERVER['HTTP_REFERER'] ?? '')
-        ));
-		exit();
-	}
+    //create controller object
+    $dispatch = null;
+    try {
+        $dispatch = new $controller($model, $controllerName, $action);
+    } catch (Exception $e) {
+        redirectNotFound($requestUri, $httpReferrer);
+    }
 
-	//call action
-	if (method_exists($controller, $action)) {
-		call_user_func_array(array($dispatch, $action), $queryString);
-	} else {
-		header(sprintf(
-            'Location: /errorpage/error404/%s/%s',
-            base64_encode($_SERVER['REQUEST_URI']),
-            base64_encode($_SERVER['HTTP_REFERER'] ?? '')
-        ));
-		exit();
-	}
+    //call action
+    if (method_exists($controller, $action)) {
+        call_user_func_array([$dispatch, $action], $queryString);
+    } else {
+        redirectNotFound($requestUri, $httpReferrer);
+    }
+}
+
+function redirectNotFound(string $requestUri, ?string $httpReferrer): void
+{
+    header(sprintf(
+        'Location: /errorpage/error404/%s/%s',
+        base64_encode($requestUri),
+        base64_encode($httpReferrer)
+    ));
+    exit();
 }
 
 define('TIMER_START', microtime(true));

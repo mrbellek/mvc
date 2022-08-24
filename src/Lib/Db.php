@@ -1,155 +1,180 @@
 <?php
+declare(strict_types=1);
+
 namespace MVC\Lib;
+
 use PDO;
 use Exception;
 
-class Db {
+class Db
+{
+    private static ?Db $instance = null;
+    private int $queryCount = 0;
+    private float $queryTimer = 0;
+    private PDO $pdo;
 
-    private static $instance;
-	private $iQueryCount = 0;
-	private $lQueryTimer = 0;
-    private PDO $PDO;
-
-    private function __construct() {
+    private function __construct()
+    {
         $dsn = 'mysql:host=' . DB_HOST . ';dbname=' . DB_DATABASE;
-		try {
-			$this->PDO = new PDO($dsn, DB_USERNAME, DB_PASSWORD);
-			$this->PDO->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-		} catch(Exception $e) {
-			if (defined('ENV') && ENV == 'prod') {
-				throw new Exception(sprintf('Database connection to %s failed: %s', DB_HOST, $e->getMessage()));
-			} else {
-				printf(
+        try {
+            $this->pdo = new PDO($dsn, DB_USERNAME, DB_PASSWORD);
+            $this->pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+        } catch(Exception $e) {
+            if (defined('ENV') && ENV == 'prod') {
+                throw new Exception(sprintf('Database connection to %s failed: %s', DB_HOST, $e->getMessage()));
+            } else {
+                printf(
                     'Database connection to %s failed. Check config file and database server?<br>Error message: %s<hr>',
                     DB_HOST,
                     $e->getMessage()
                 );
                 exit();
-			}
-		}
+            }
+        }
     }
 
-	//singleton
-    public static function getInstance() {
-        if(!self::$instance) {
+    //singleton
+    public static function getInstance()
+    {
+        if (!self::$instance) {
             self::$instance = new Db();
         }
         return self::$instance;
     }
 
-	//function that actually does the query and returns a result
-    private function query() {
-		$lStart = microtime(TRUE);
+    //function that actually does the query and returns a result
+    private function query()
+    {
+        $lStart = microtime(true);
 
-		//arguments should be query (with placeholders) followed by an array of key-value pairs
+        //arguments should be query (with placeholders) followed by an array of key-value pairs
         $args = func_get_args();
         $args = array_shift($args);
-		$query = array_shift($args);
-		if ($args) {
-			$params = array_shift($args);
-		} else {
-			$params = array();
-		}
+        $query = array_shift($args);
+        $params = $args ? array_shift($args) : [];
 
-		$sth = $this->PDO->prepare($query);
-		if (!$sth) {
-			//prepare failed
-			if (defined('ENV') && ENV == 'prod') {
-				throw new Exception(sprintf('%s - Prepare failed for query: %s', implode(':', $sth->errorInfo()), $query));
-			} else {
-				die(var_dump(implode(':', $this->PDO->errorInfo()), $query, $params));
-			}
-		}
-
-		//explicitly bind parameters as int/string so IN() doens't get quoted
-		foreach ($params as $key => $value) {
-			if (is_numeric($value)) {
-				$sth->bindValue($key, $value, PDO::PARAM_INT);
-			} elseif (is_bool($value)) {
-				$sth->bindValue($key, $value, PDO::PARAM_BOOL);
-			} elseif (is_null($value)) {
-				$sth->bindValue($key, $value, PDO::PARAM_NULL);
-			} else {
-				$sth->bindValue($key, $value, PDO::PARAM_STR);
-			}
-		}
-
-		//query invalid
-        if(!$sth->execute()) {
-			if (defined('ENV') && ENV == 'prod') {
-				throw new Exception(sprintf('%s - Execute failed for query: %s', implode(':', $sth->errorInfo()), $query));
-			} else {
-				die(var_dump(implode(':', $sth->errorInfo()), $query, $params));
-			}
+        $sth = $this->pdo->prepare($query);
+        if (!$sth) {
+            //prepare failed
+            $this->handlePrepareError($sth, $query, $params);
         }
-		$this->lQueryTimer+= microtime(TRUE) - $lStart;
-		$this->iQueryCount++;
+
+        //explicitly bind parameters as int/string so IN() doens't get quoted
+        foreach ($params as $key => $value) {
+            if (is_numeric($value)) {
+                $sth->bindValue($key, $value, PDO::PARAM_INT);
+            } elseif (is_bool($value)) {
+                $sth->bindValue($key, $value, PDO::PARAM_BOOL);
+            } elseif (is_null($value)) {
+                $sth->bindValue($key, $value, PDO::PARAM_NULL);
+            } else {
+                $sth->bindValue($key, $value, PDO::PARAM_STR);
+            }
+        }
+
+        //query invalid
+        if(!$sth->execute()) {
+            $this->handleExecuteError($sth, $query, $params);
+        }
+        $this->queryTimer += microtime(true) - $lStart; //@TODO replace with hrtime?
+        $this->queryCount++;
 
         $query = preg_replace('/^\s+/', '', $query);
         if(strpos(strtolower($query), 'select') === 0) {
-			//return results for SELECT
+            //return results for SELECT
             return $sth;
+
         } elseif(strpos(strtolower($query), 'insert') === 0) {
-			//return insert id for INSERT
-            $id = $this->PDO->lastInsertId();
-            return ($id ? $id : TRUE);
+            //return insert id for INSERT
+            $id = $this->pdo->lastInsertId();
+            return ($id ?: true);
+
         } else {
-			//return TRUE for DELETE, UPDATE
-			//NB: don't return affected rows for UPDATE since 0 affected will be interpreted as query failed)
-            return TRUE;
+            //return TRUE for DELETE, UPDATE
+            //NB: don't return affected rows for UPDATE since 0 affected will be interpreted as query failed)
+            return true;
         }
     }
 
-	//regular query that returns multiple rows
-    public function fquery() {
+    //regular query that returns multiple rows
+    public function fquery()
+    {
         $sth = $this->query(func_get_args());
-        if(is_object($sth)) {
-            return $sth->fetchAll(PDO::FETCH_ASSOC);
+        if (is_object($sth)) {
+            return $sth->fetchAll();
         } else {
             return $sth;
         }
     }
 
-	//query that returns single row
-    public function fetch_single() {
+    //query that returns single row
+    public function fetch_single()
+    {
         $sth = $this->query(func_get_args());
         if(is_object($sth)) {
-            return $sth->fetch(PDO::FETCH_ASSOC);
+            return $sth->fetch();
         } else {
             return $sth;
         }
     }
 
-	//query that returns single value from single row
-    public function fetch_value() {
+    //query that returns single value from single row
+    public function fetch_value()
+    {
         $sth = $this->query(func_get_args());
         if(is_object($sth)) {
             $ret = $sth->fetch(PDO::FETCH_NUM);
             if($ret) {
                 return $ret[0];
             } else {
-                return FALSE;
+                return false;
             }
         } else {
             return $sth;
         }
     }
 
-	public function fetch_raw() {
-		$sth = $this->query(func_get_args());
-		return $sth;
-	}
+    public function fetch_raw()
+    {
+        return $this->query(func_get_args());
+    }
 
-	public function foundRows() {
-		return $this->fetch_value('SELECT FOUND_ROWS()');
-	}
+    public function foundRows()
+    {
+        return $this->fetch_value('SELECT FOUND_ROWS()');
+    }
 
-	public function lastInsertId() {
-		return $this->PDO->lastInsertId();
-	}
+    public function lastInsertId()
+    {
+        return $this->pdo->lastInsertId();
+    }
 
-	public function getQueryStats() {
-		return array('count' => $this->iQueryCount, 'time' => number_format($this->lQueryTimer, 4));
-	}
+    public function getQueryStats()
+    {
+        return ['count' => $this->queryCount, 'time' => number_format($this->queryTimer, 4)];
+    }
+
+    /**
+     * @throws Exception
+     */
+    private function handlePrepareError($sth, $query, $params): void
+    {
+        if (defined('ENV') && ENV == 'prod') {
+            throw new Exception(sprintf('%s - Prepare failed for query: %s', implode(':', $sth->errorInfo()), $query));
+        } else {
+            die(var_dump(implode(':', $this->pdo->errorInfo()), $query, $params));
+        }
+    }
+
+    /**
+     * @throws Exception
+     */
+    private function handleExecuteError($sth, $query, $params): void
+    {
+        if (defined('ENV') && ENV == 'prod') {
+            throw new Exception(sprintf('%s - Execute failed for query: %s', implode(':', $sth->errorInfo()), $query));
+        } else {
+            die(var_dump(implode(':', $sth->errorInfo()), $query, $params));
+        }
+    }
 }
-?>

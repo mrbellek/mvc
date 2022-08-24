@@ -1,21 +1,22 @@
 <?php
-//localhost and phpdev.nl: DEV
-if (strpos($_SERVER['HTTP_HOST'], 'localhost') !== false ||
-	strpos($_SERVER['HTTP_HOST'], 'phpdev.nl') !== false) {
+$httpHost = filter_input(INPUT_SERVER, 'HTTP_HOST');
 
-	define('ENV', 'dev');
-	define('DB_HOST', 'localhost');
+//localhost and phpdev.nl: DEV
+if (strpos($httpHost, 'localhost') !== false || strpos($httpHost, 'phpdev.nl') !== false) {
+
+    define('ENV', 'dev');
+    define('DB_HOST', 'localhost');
 
 //phptest.nl: TEST
-} elseif (strpos($_SERVER['HTTP_HOST'], 'phptest.nl') !== false) {
+} elseif (strpos($httpHost, 'phptest.nl') !== false) {
 
-	define('ENV', 'test');
-	define('DB_HOST', '127.0.0.1');
+    define('ENV', 'test');
+    define('DB_HOST', '127.0.0.1');
 
 //everything else: PROD
 } else {
-	define('ENV', 'prod');
-	define('DB_HOST', 'db');
+    define('ENV', 'prod');
+    define('DB_HOST', 'db');
 }
 
 const DB_DATABASE = 'mvc';

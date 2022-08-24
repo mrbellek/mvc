@@ -1,78 +1,82 @@
 <?php
+declare(strict_types=1);
+
 namespace MVC\Model;
+
 use MVC\Lib\Model;
-use \Exception;
+use Exception;
 
 class Register extends Model {
 
-	public function Validate($aData) {
+    public function validate(string $username, string $password, string $passwordVerify) {
 
-		if ($this->UserExists($aData['username']) && !$_SESSION['user']['username'] == $aData['username']) {
-			throw new Exception('This email address is already taken.');
+        if ($this->userExists($username) && !$_SESSION['user']['username'] == $username) {
+            throw new Exception('This email address is already taken.');
 
-		} elseif (!validEmailSyntax($aData['username'])) {
-			throw new Exception('Email adress is invalid.');
+        } elseif (!validEmailSyntax($username)) {
+            throw new Exception('Email adress is invalid.');
 
-		} elseif (empty($aData['password']) || empty($aData['password_confirm'])) {
-			throw new Exception('Password is empty.');
+        } elseif (empty($password) || empty($passwordVerify)) {
+            throw new Exception('Password is empty.');
 
-		} elseif ($aData['password'] !== $aData['password_confirm']) {
-			throw new Exception('Passwords aren\'t the same.');
-		}
+        } elseif ($password !== $passwordVerify) {
+            throw new Exception('Passwords aren\'t the same.');
+        }
 
-		return TRUE;
-	}
+        return true;
+    }
 
-	private function UserExists($sUsername) {
+    private function userExists($sUsername) {
 
-		return $this->SQL->fetch_single('
-			SELECT *
-			FROM user
-			WHERE username = :username
-			OR email = :username',
-			array(
-				':username' => $sUsername,
-			)
-		);
-	}
+        return $this->sql->fetch_single('
+            SELECT *
+            FROM user
+            WHERE username = :username
+            OR email = :username
+            LIMIT 1',
+            [':username' => $sUsername]
+        );
+    }
 
-	public function RegisterAndLogin($aData) {
+    public function registerAndLogin(string $username, string $password, string $passwordVerify, string $admin) {
 
-		$iUserId = $this->Register($aData, !empty($aData['admin']));
+        $userId = $this->register($username, $password, !empty($admin));
 
-		return ($iUserId ? $this->Login($aData) : FALSE);
-	}
+        if ($userId) {
+            return $this->login($username, $password);
+        }
 
-	private function Register($aData, $bAdmin = FALSE) {
+        return false;
+    }
 
-		$sUsername = $aData['username'];
-		$sPassword = $aData['password'];
+    private function register(string $username, string $password, $bAdmin = false)
+    {
+        $sUsername = $username;
+        $sPassword = $password;
 
-		$sHash = password_hash($sPassword, PASSWORD_BCRYPT, array('cost' => 12));
+        $sHash = password_hash($sPassword, PASSWORD_BCRYPT, ['cost' => 12]);
 
-		$aRoles = array('ROLE_USER');
-		if ($bAdmin) {
-			$aRoles[] = 'ROLE_SUPER_ADMIN';
-		}
+        $roles = ['ROLE_USER'];
+        if ($bAdmin) {
+            $roles[] = 'ROLE_SUPER_ADMIN';
+        }
 
-		$iUserId = $this->SQL->fquery('
-			INSERT INTO user
-				(username, email, enabled, salt, password, locked, expired, roles, credentials_expired)
-			VALUES
-				(:username, :email, 1, "", :password, 0, 0, :roles, 0)',
-			array(
-				':username' => $sUsername,
-				':email' => $sUsername,
-				':password' => $sHash,
-				':roles' => serialize($aRoles),
-			)
-		);
+        return $this->sql->fquery('
+            INSERT INTO user
+                (username, email, enabled, salt, password, locked, expired, roles, credentials_expired)
+            VALUES
+                (:username, :email, 1, "", :password, 0, 0, :roles, 0)',
+            [
+                ':username' => $sUsername,
+                ':email' => $sUsername,
+                ':password' => $sHash,
+                ':roles' => serialize($roles),
+            ]
+        );
+    }
 
-		return $iUserId;
-	}
+    private function login(string $username, string $password) {
 
-	private function Login($aData) {
-
-		return (new \MVC\Model\Login)->login($aData);
-	}
+        return (new \MVC\Model\Login())->login($username, $password);
+    }
 }

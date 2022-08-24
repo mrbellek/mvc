@@ -1,9 +1,9 @@
 <?php
+declare(strict_types=1);
 
-$routing = array(
-);
+$routing = [];
 
-$default = array(
-	'controller'	=> 'home',
-	'action'		=> 'index',
-);
+$default = [
+    'controller'    => 'home',
+    'action'        => 'index',
+];

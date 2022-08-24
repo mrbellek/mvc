@@ -1,111 +1,118 @@
 <?php
+declare(strict_types=1);
+
 namespace MVC\Helper;
-use \Memcached;
-use \Exception;
 
-class Cache {
+use Memcached;
+use Exception;
 
-	//NB: the 'CLEARCACHE' and 'NOCACHE' constants are defined in index.php
-	//one forcefully clears the entire cache, the other just ignores the cache for that request
+class Cache
+{
+    //NB: the 'CLEARCACHE' and 'NOCACHE' constants are defined in index.php
+    //one forcefully clears the entire cache, the other just ignores the cache for that request
 
-	static $oMemcached = null;
+    private static $memcached = null;
 
-	//default cache time: 30 minutes
-	private $iDefaultExpiration = 1800;
+    //default cache time: 30 minutes
+    private int $defaultExpiration = 1800;
 
-	private function __construct() {}
+    private function __construct() {}
 
-	public static function getInstance() {
+    /**
+     * @return Memcached|MemcacheDummy|null
+     * @throws Exception
+     */
+    public static function getInstance()
+    {
+        if (defined('ENV') && ENV == 'prod') {
+            if (!self::$memcached) {
 
-		if (defined('ENV') && ENV == 'prod') {
-			if (!self::$oMemcached) {
+                try {
+                    self::$memcached = new Memcached();
+                    self::$memcached->addServer('127.0.0.1', 11211);
 
-				try {
-					self::$oMemcached = new Memcached;
-					self::$oMemcached->addServer('127.0.0.1', 11211);
+                } catch(Exception $e) {
 
-				} catch(Exception $i) {
+                    throw new Exception('Kon niet verbinden met memcached: ' . $e->getMessage());
+                }
+            }
 
-					throw new Exception('Kon niet verbinden met memcached: ' . $e->getMessage());
-				}
-			}
+            return self::$memcached;
 
-			return self::$oMemcached;
+        } else {
 
-		} else {
+            return new MemcacheDummy();
+        }
+    }
 
-			return new MemcacheDummy;
-		}
-	}
+    //store item in cache (objects are automatically serialized
+    public function set($sName, $mValue, $iExpires = false): bool
+    {
+        //don't use cache when ?nocache
+        if (NOCACHE) {
+            return true;
+        }
 
-	//store item in cache (objects are automatically serialized
-	public function set($sName, $mValue, $iExpires = FALSE) {
+        if (!$iExpires) {
+            $iExpires = $this->defaultExpiration;
+        }
 
-		//don't use cache when ?nocache
-		if (NOCACHE) {
-			return TRUE;
-		}
+        //store item
+        self::$memcached->set($sName, $mValue, $iExpires);
 
-		if (!$iExpires) {
-			$iExpires = $this->iDefaultExpiration;
-		}
+        return true;
+    }
 
-		//store item
-		$this->oMemcached->set($sName, $mValue, $iExpires);
+    //get item from cache if possible
+    public function get($sName)
+    {
+        //don't use cache when ?nocache
+        if (NOCACHE) {
+            return false;
+        }
 
-		return TRUE;
-	}
+        return self::$memcached->get($sName);
+    }
 
-	//get item from cache if possible
-	public function get($sName) {
+    //delete item from cache and index
+    public function delete($sKey)
+    {
+        if (preg_match('/\/.+\/.?/', $sKey)) {
 
-		//don't use cache when ?nocache
-		if (NOCACHE) {
-			return FALSE;
-		}
+            $aKeys = self::$memcached->getAllKeys();
+            if ($aKeys && is_array($aKeys)) {
 
-		return $this->oMemcached->get($sName);
-	}
+                $aDelete = array();
+                foreach ($aKeys as $sName) {
+                    if (preg_match($sKey, $sName)) {
+                        $aDelete[] = $sName;
+                    }
+                }
+                self::$memcached->deleteMulti($aDelete);
+            }
 
-	//delete item from cache and index
-	public function delete($sKey) {
+        } else {
+            self::$memcached->delete($sKey);
+        }
 
-		if (preg_match('/\/.+\/.?/', $sKey)) {
+        return true;
+    }
 
-			$aKeys = $this->oMemcached->getAllKeys();
-			if ($aKeys && is_array($aKeys)) {
+    public function clear()
+    {
+        $aKeys = self::$memcached->getAllKeys();
+        self::$memcached->deleteMulti($aKeys);
 
-				$aDelete = array();
-				foreach ($aKeys as $sName) {
-					if (preg_match($sKey, $sName)) {
-						$aDelete[] = $sName;
-					}
-				}
-				$this->oMemcached->deleteMulti($aDelete);
-			}
-
-		} else {
-			$this->oMemcached->delete($sKey);
-		}
-
-		return TRUE;
-	}
-
-	public function clear() {
-
-		$aKeys = $this->oMemcached->getAllKeys();
-		$this->oMemcached->deleteMulti($aKeys);
-
-		return TRUE;
-	}
+        return true;
+    }
 }
 
 //dummy class to use on dev, both because memcached only runs
 //on unix server and we don't want caching on dev
-class MemcacheDummy {
-
-	public function get() { return array(); }
-	public function set() {}
-	public function delete() {}
-	public function clear() {}
+class MemcacheDummy
+{
+    public function get() { return []; }
+    public function set() {}
+    public function delete() {}
+    public function clear() {}
 }
