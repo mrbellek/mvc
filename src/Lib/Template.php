@@ -1,13 +1,16 @@
 <?php
 namespace MVC\Lib;
-use \Twig_Loader_Filesystem;
-use \Twig_Environment;
-use \Twig_Extension_Debug;
+
+use Twig\Loader\FilesystemLoader;
+use Twig\Environment;
+use Twig\Extension\DebugExtension;
 
 class Template {
 
 	protected $_controller;
 	protected $_action;
+
+    protected $twig;
 
 	protected $variables = array();
 	private $includes = array('css' => array(), 'js' => array());
@@ -16,13 +19,12 @@ class Template {
 		$this->_controller = $controller;
 		$this->_action = $action;
 
-        $twig_loader = new Twig_Loader_Filesystem(DOCROOT . '/view');
-        $this->twig = new Twig_Environment($twig_loader, array(
+        $twig_loader = new FilesystemLoader(DOCROOT . '/view');
+        $this->twig = new Environment($twig_loader, [
             'cache' => (defined('ENV') && ENV == 'prod' ? DOCROOT . '/cache' : FALSE),
-			'debug' => (defined('ENV') && ENV == 'prod' ? FALSE : TRUE),
-        ));
-		$this->twig->getExtension('core')->setNumberFormat(2, ',', '.');
-		$this->twig->addExtension(new Twig_Extension_Debug());
+			'debug' => !(defined('ENV') && ENV == 'prod'),
+        ]);
+        $this->twig->addExtension(new DebugExtension());
 	}
 
 	public function set($name, $value = FALSE) {
@@ -93,7 +95,7 @@ class Template {
 		if (!is_file(DOCROOT . '/view/' . $this->_controller . '/' . $this->_action . '.twig')) {
 			Controller::redirect(sprintf('/errorpage/error500/%s/%s',
 				base64_encode(sprintf('/%s/%s', $this->_controller, $this->_action)),
-				base64_encode($_SERVER['HTTP_REFERER'])
+				base64_encode($_SERVER['HTTP_REFERER'] ?? '')
 			));
 		}
 
