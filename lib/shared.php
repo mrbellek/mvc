@@ -3,13 +3,12 @@ declare(strict_types=1);
 
 function setReporting()
 {
-    if (defined('ENV') && ENV == 'dev' || ENV == 'test') {
+    error_reporting(E_ALL);
+    if (defined('ENV') && (ENV == 'dev' || ENV == 'test')) {
         //dev
-        error_reporting(E_ALL);
         ini_set('display_errors', 'On');
     } else {
         //prod
-        error_reporting(E_ALL);
         ini_set('display_errors', 'Off');
         ini_set('log_errors', 'On');
     }
@@ -63,7 +62,7 @@ function callHook(string $url, array $routing, array $default)
             redirectNotFound($requestUri, $httpReferrer);
         } else {
             printf('Controller class not found: %s', $controller);
-            exit();
+            return;
         }
     }
 
@@ -90,7 +89,7 @@ function redirectNotFound(string $requestUri, ?string $httpReferrer): void
         base64_encode($requestUri),
         base64_encode($httpReferrer)
     ));
-    exit();
+    return;
 }
 
 define('TIMER_START', microtime(true));

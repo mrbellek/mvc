@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 $httpHost = filter_input(INPUT_SERVER, 'HTTP_HOST');
 
 //localhost and phpdev.nl: DEV

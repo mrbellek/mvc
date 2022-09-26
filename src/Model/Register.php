@@ -38,7 +38,7 @@ class Register extends Model {
         );
     }
 
-    public function registerAndLogin(string $username, string $password, string $passwordVerify, string $admin) {
+    public function registerAndLogin(string $username, string $password, string $admin) {
 
         $userId = $this->register($username, $password, !empty($admin));
 

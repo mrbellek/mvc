@@ -18,7 +18,7 @@ class Register extends Controller {
                 $admin = filter_input(INPUT_POST, 'admin');
 
                 if ($this->model->validate($username, $password, $passwordVerify)) {
-                    if ($this->model->registerAndLogin($username, $password, $passwordVerify, $admin)) {
+                    if ($this->model->registerAndLogin($username, $password, $admin)) {
 
                         $this->setDelayedInfo('Registration successful.');
                         $this->redirect('/');
