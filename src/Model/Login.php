@@ -18,14 +18,11 @@ class Login extends Model {
             FROM user
             WHERE username = :username
             AND enabled = 1
-            AND locked = 0
-            AND expired = 0
-            AND credentials_expired = 0
             LIMIT 1',
             [':username' => $username]
         );
 
-        if ($user && password_verify($password, $user['password'])) {
+        if ($user && password_verify($password, $user['passwordhash'])) {
 
             $this->sql->fquery('
                 UPDATE user

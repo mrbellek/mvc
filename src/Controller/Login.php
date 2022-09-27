@@ -7,10 +7,9 @@ use MVC\Lib\Controller;
 
 class Login extends Controller {
 
-    public function index() {
-
-        if (filter_input(INPUT_SERVER, 'REQUEST_METHOD') === 'POST')
-        {
+    public function index()
+    {
+        if (filter_input(INPUT_SERVER, 'REQUEST_METHOD') === 'POST') {
             $username = filter_input(INPUT_POST, 'username');
             $password = filter_input(INPUT_POST, 'password');
 

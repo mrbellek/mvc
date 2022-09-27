@@ -3,17 +3,17 @@ declare(strict_types=1);
 
 namespace MVC\Model;
 
-use MVC\Lib\Model;
 use Exception;
+use MVC\Lib\Model;
 
 class Register extends Model {
 
-    public function validate(string $username, string $password, string $passwordVerify) {
+    public function validate(string $username, string $email, string $password, string $passwordVerify) {
 
-        if ($this->userExists($username) && !$_SESSION['user']['username'] == $username) {
-            throw new Exception('This email address is already taken.');
+        if ($this->userExists($username, $email) && isset($_SESSION['user']) && $_SESSION['user']['username'] !== $username) {
+            throw new Exception('This username or email address is already taken.');
 
-        } elseif (!validEmailSyntax($username)) {
+        } elseif (!$this->validateEmailSyntax($email)) {
             throw new Exception('Email adress is invalid.');
 
         } elseif (empty($password) || empty($passwordVerify)) {
@@ -26,21 +26,31 @@ class Register extends Model {
         return true;
     }
 
-    private function userExists($sUsername) {
+    private function validateEmailSyntax($email): bool
+    {
+        return filter_var($email, FILTER_VALIDATE_EMAIL) !== false;
+    }
 
-        return $this->sql->fetch_single('
+    private function userExists(string $username, string $email): bool
+    {
+        $result = $this->sql->fetch_single('
             SELECT *
             FROM user
             WHERE username = :username
-            OR email = :username
+            OR email = :email
             LIMIT 1',
-            [':username' => $sUsername]
+            [
+                ':username' => $username,
+                ':email' => $email
+            ]
         );
+
+        return is_countable($result) && count($result) > 0;
     }
 
-    public function registerAndLogin(string $username, string $password, string $admin) {
-
-        $userId = $this->register($username, $password, !empty($admin));
+    public function registerAndLogin(string $username, string $email, string $password, ?string $admin): bool
+    {
+        $userId = $this->register($username, $email, $password, !empty($admin));
 
         if ($userId) {
             return $this->login($username, $password);
@@ -49,27 +59,22 @@ class Register extends Model {
         return false;
     }
 
-    private function register(string $username, string $password, $bAdmin = false)
+    private function register(string $username, string $email, string $password, bool $isAdmin = false)
     {
-        $sUsername = $username;
-        $sPassword = $password;
-
-        $sHash = password_hash($sPassword, PASSWORD_BCRYPT, ['cost' => 12]);
+        $hash = password_hash($password, PASSWORD_BCRYPT, ['cost' => 12]);
 
         $roles = ['ROLE_USER'];
-        if ($bAdmin) {
+        if ($isAdmin) {
             $roles[] = 'ROLE_SUPER_ADMIN';
         }
 
         return $this->sql->fquery('
-            INSERT INTO user
-                (username, email, enabled, salt, password, locked, expired, roles, credentials_expired)
-            VALUES
-                (:username, :email, 1, "", :password, 0, 0, :roles, 0)',
+            INSERT INTO user (username, email, passwordHash, enabled, roles, registered_date)
+            VALUES (:username, :email, :password, 1, :roles, NOW())',
             [
-                ':username' => $sUsername,
-                ':email' => $sUsername,
-                ':password' => $sHash,
+                ':username' => $username,
+                ':email' => $email,
+                ':password' => $hash,
                 ':roles' => serialize($roles),
             ]
         );

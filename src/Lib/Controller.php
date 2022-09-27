@@ -123,7 +123,7 @@ class Controller
     }
 
     //wrapper call for including css
-    public function includeCss($content): void
+    public function includeCss(string $content): void
     {
         $this->_template->includeExternal('css', $content);
     }

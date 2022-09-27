@@ -13,12 +13,13 @@ class Register extends Controller {
         if (filter_input(INPUT_SERVER, 'REQUEST_METHOD') === 'POST') {
             try {
                 $username = filter_input(INPUT_POST, 'username');
+                $email = filter_input(INPUT_POST, 'email');
                 $password = filter_input(INPUT_POST, 'password');
                 $passwordVerify = filter_input(INPUT_POST, 'passwordVerify');
                 $admin = filter_input(INPUT_POST, 'admin');
 
-                if ($this->model->validate($username, $password, $passwordVerify)) {
-                    if ($this->model->registerAndLogin($username, $password, $admin)) {
+                if ($this->model->validate($username, $email, $password, $passwordVerify)) {
+                    if ($this->model->registerAndLogin($username, $email, $password, $admin)) {
 
                         $this->setDelayedInfo('Registration successful.');
                         $this->redirect('/');
@@ -26,6 +27,7 @@ class Register extends Controller {
                         $this->setError('Registration failed.');
                         $this->set('post', [
                             'username' => $username,
+                            'email' => $email,
                             'password' => $password,
                             'passwordVerify' => $passwordVerify,
                         ]);
@@ -35,6 +37,7 @@ class Register extends Controller {
                 $this->setError($e->getMessage());
                 $this->set('post', [
                     'username' => $username,
+                    'email' => $email,
                     'password' => $password,
                     'passwordVerify' => $passwordVerify,
                 ]);

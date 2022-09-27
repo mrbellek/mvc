@@ -89,9 +89,9 @@ function redirectNotFound(string $requestUri, ?string $httpReferrer): void
         base64_encode($requestUri),
         base64_encode($httpReferrer)
     ));
-    return;
+    exit();
 }
 
 define('TIMER_START', microtime(true));
 setReporting();
-callHook($url, $routing, $default);
+callHook($url ?? '', $routing ?? [], $default ?? []);
