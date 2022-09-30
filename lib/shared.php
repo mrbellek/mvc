@@ -70,7 +70,7 @@ function callHook(string $url, array $routing, array $default)
     $dispatch = null;
     try {
         $dispatch = new $controller($model, $controllerName, $action);
-    } catch (Exception $e) {
+    } catch (Exception | Error $e) {
         redirectNotFound($requestUri, $httpReferrer);
     }
 
@@ -87,7 +87,7 @@ function redirectNotFound(string $requestUri, ?string $httpReferrer): void
     header(sprintf(
         'Location: /errorpage/error404/%s/%s',
         base64_encode($requestUri),
-        base64_encode($httpReferrer)
+        base64_encode($httpReferrer ?? '')
     ));
     exit();
 }

@@ -7,7 +7,7 @@ use MVC\Lib\Controller;
 
 class Errorpage extends Controller {
 
-    public function error404($url, $referrer = false)
+    public function error404(string $url, ?string $referrer = null)
     {
         $this->set('sUrl', base64_decode($url));
         if ($referrer) {
@@ -16,7 +16,7 @@ class Errorpage extends Controller {
         }
     }
 
-    public function error500($sUrl, $sReferer = false)
+    public function error500(string$sUrl, ?string $sReferer = null)
     {
         $this->set('sUrl', base64_decode($sUrl));
         if ($sReferer) {

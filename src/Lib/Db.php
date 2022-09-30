@@ -96,13 +96,15 @@ class Db
         }
     }
 
-    //regular query that returns multiple rows
+    //regular query that can return multiple rows
     public function fquery()
     {
         $sth = $this->query(func_get_args());
         if (is_object($sth)) {
+            //select query
             return $sth->fetchAll();
         } else {
+            //non-select query that can return bool/int
             return $sth;
         }
     }
