@@ -1,0 +1,21 @@
+{% extends "_layout.twig" %}
+
+{% block main_content %}
+    <h1>{{ title }}</h1>
+
+    <form method="post">
+        <div class="mb-3">
+            <label for="title" class="form-label">Title</label>
+            <input type="text" class="form-control" id="title" name="title" value="{{ post.title }}">
+        </div>
+        <br/>
+        <div class="mb-3">
+            <label for="body" class="form-label">Post</label>
+            <textarea class="form-control" rows="10" id="body" name="body">{{ post.body }}</textarea>
+        </div>
+        <br/>
+        <button type="submit" class="btn btn-primary">Submit</button>
+        <button type="button" class="btn btn-secondary" onclick="location.href='/blog';">Cancel</button>
+    </form>
+    <br/>
+{% endblock main_content %}

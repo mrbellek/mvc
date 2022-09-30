@@ -1,0 +1,15 @@
+{% extends "_layout.twig" %}
+
+{% block main_content %}
+<h1>Delete blog post</h1>
+
+<form method="post">
+    <div class="mb-3">
+        <p>Are you sure you want to delete the blog post title "{{ title }}"?</p>
+        <br/>
+        <button type="submit" class="btn btn-primary">Submit</button>
+        <button type="button" class="btn btn-secondary" onclick="location.href='/blog';">Cancel</button>
+    </div>
+    <br/>
+</form>
+{% endblock main_content %}
