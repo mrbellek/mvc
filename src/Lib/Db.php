@@ -76,7 +76,7 @@ class Db
         if(!$sth->execute()) {
             $this->handleExecuteError($sth, $query, $params);
         }
-        $this->queryTimer += microtime(true) - $lStart; //@TODO replace with hrtime?
+        $this->queryTimer += microtime(true) - $lStart;
         $this->queryCount++;
 
         $query = preg_replace('/^\s+/', '', $query);
@@ -97,7 +97,7 @@ class Db
     }
 
     //regular query that can return multiple rows
-    public function fquery()
+    public function fquery(): mixed
     {
         $sth = $this->query(func_get_args());
         if (is_object($sth)) {
@@ -110,7 +110,7 @@ class Db
     }
 
     //query that returns single row
-    public function fetch_single()
+    public function fetch_single(): mixed
     {
         $sth = $this->query(func_get_args());
         if(is_object($sth)) {
@@ -121,13 +121,13 @@ class Db
     }
 
     //query that returns single value from single row
-    public function fetch_value()
+    public function fetch_value(): mixed
     {
         $sth = $this->query(func_get_args());
-        if(is_object($sth)) {
-            $ret = $sth->fetch(PDO::FETCH_NUM);
-            if($ret) {
-                return $ret[0];
+        if (is_object($sth)) {
+            $ret = $sth->fetch();
+            if ($ret) {
+                return reset($ret);
             } else {
                 return false;
             }
@@ -136,22 +136,22 @@ class Db
         }
     }
 
-    public function fetch_raw()
+    public function fetch_raw(): mixed
     {
         return $this->query(func_get_args());
     }
 
-    public function foundRows()
+    public function foundRows(): ?int
     {
         return $this->fetch_value('SELECT FOUND_ROWS()');
     }
 
-    public function lastInsertId()
+    public function lastInsertId(): ?string
     {
         return $this->pdo->lastInsertId();
     }
 
-    public function getQueryStats()
+    public function getQueryStats(): array
     {
         return ['count' => $this->queryCount, 'time' => number_format($this->queryTimer, 4)];
     }

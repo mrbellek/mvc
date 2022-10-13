@@ -5,14 +5,14 @@ namespace MVC\Lib;
 
 use MVC\Lib\Db;
 
-class Model {
-
-    protected string $_model;
+class Model
+{
+    protected string $modelStr;
     protected ?Db $sql;
 
     public function __construct()
     {
-        $this->_model = get_class($this);
+        $this->modelStr = get_class($this);
         $this->sql = Db::getInstance();
     }
 
@@ -24,7 +24,7 @@ class Model {
 
     public function __sleep()
     {
-        return ['_model'];
+        return ['modelStr'];
     }
 
     public function __wakeup()

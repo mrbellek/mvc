@@ -10,10 +10,10 @@ use MVC\Helper\Mailer;
 
 class Controller
 {
-    protected string $_model;
-    protected string $_controller;
-    protected string $_action;
-    protected Template $_template;
+    protected string $modelStr;
+    protected string $controllerStr;
+    protected string $actionStr;
+    protected Template $template;
 
     protected Model $model;
     protected $cache;
@@ -37,12 +37,12 @@ class Controller
 
     public function __construct(string $model, string $controller, string $action)
     {
-        $this->_controller = $controller;
-        $this->_action = $action;
-        $this->_model = $model;
+        $this->controllerStr = $controller;
+        $this->actionStr = $action;
+        $this->modelStr = $model;
 
         $this->model = new $model();
-        $this->_template = new Template($controller, $action);
+        $this->template = new Template($controller, $action);
 
         //caching is only available in controller because model is the wrong place for that
         $this->cache = Cache::getInstance();
@@ -50,7 +50,7 @@ class Controller
             $this->cache->clear();
         }
 
-        if (isset($_SESSION['user'])) {
+        if (!empty($_SESSION['user'])) {
             //set user session var
             $this->set('session', $_SESSION['user']);
 
@@ -58,13 +58,11 @@ class Controller
                 $this->setDelayedError('You need to be admin to view this page.');
                 $this->redirect('/');
             }
-        } else {
-            if (empty($_SESSION['user']) && !in_array($controller, $this->openPages) && !in_array($controller . '/' . $action, $this->openPages)) {
-                //show login screen for restricted pages if user is not logged in
-                $this->setDelayedError('You need to login to view this page.');
-                $_SESSION['post_login'] = $_SERVER['REQUEST_URI'];
-                $this->redirect('/login');
-            }
+        } elseif (!in_array($controller, $this->openPages) && !in_array($controller . '/' . $action, $this->openPages)) {
+            //show login screen for restricted pages if user is not logged in
+            $this->setDelayedError('You need to login to view this page.');
+            $_SESSION['post_login'] = filter_input(INPUT_SERVER, 'REQUEST_URI');
+            $this->redirect('/login');
         }
 
         //set any error/warning/info message set in session
@@ -89,7 +87,7 @@ class Controller
     //set template var
     public function set($name, $value): void
     {
-        $this->_template->set($name, $value);
+        $this->template->set($name, $value);
     }
 
     public function setInfo($sMessage): void
@@ -104,7 +102,7 @@ class Controller
 
     public function setMessage($sType, $sMessage): void
     {
-        $this->_template->set('_message', ['type' => $sType, 'message' => $sMessage]);
+        $this->template->set('_message', ['type' => $sType, 'message' => $sMessage]);
     }
 
     public function setDelayedInfo($sMessage): void
@@ -125,13 +123,13 @@ class Controller
     //wrapper call for including css
     public function includeCss(string $content): void
     {
-        $this->_template->includeExternal('css', $content);
+        $this->template->includeExternal('css', $content);
     }
 
     //wrapper call for including js
     public function includeJs($content): void
     {
-        $this->_template->includeExternal('js', $content);
+        $this->template->includeExternal('js', $content);
     }
 
     //wrapper call for redirects
@@ -149,7 +147,7 @@ class Controller
             $this->set('timer_pageload', round(microtime(true) - TIMER_START, 2) . 's');
             $this->set('timer_database', Db::getInstance()->getQueryStats());
             $this->set('session_print', print_r($_SESSION, true));
-            $this->_template->render();
+            $this->template->render();
         }
     }
 }
