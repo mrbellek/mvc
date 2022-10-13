@@ -6,32 +6,34 @@
     <div class="col-md-12">
         <h1>My account</h1>
     </div>
-    <form method="post">
-        <div class="mb-3">
-            <label for="id" class="form-label">ID</label>
-            <input type="text" class="form-control" id="id" value="{{ user.id}}" disabled>
-        </div>
-        <br/>
-        <div class="mb-3">
-            <label for="username" class="form-label">Username</label>
-            <input type="text" class="form-control" id="username" value="{{ user.username }}" disabled>
-        </div>
-        <br/>
-        <div class="mb-3">
-            <label for="email" class="form-label">Email</label>
-            <input type="text" class="form-control" id="email" name="email" value="{{ user.email }}">
-        </div>
-        {% if session.user.is_admin %}
+    <div class="col-md-12">
+        <form method="post">
+            <div class="mb-3">
+                <label for="id" class="form-label">ID</label>
+                <input type="text" class="form-control" id="id" value="{{ user.id}}" disabled>
+            </div>
             <br/>
             <div class="mb-3">
-                <input type="checkbox" class="form-check-input" id="is_admin" name="is_admin" value="{{ user.is_admin }}">
-                <label class="form-check-label" for="is_admin">This user is an administrator</label>
+                <label for="username" class="form-label">Username</label>
+                <input type="text" class="form-control" id="username" value="{{ user.username }}" disabled>
             </div>
-        {% endif %}
-        <br/>
-        <button type="submit" class="btn btn-primary">Submit</button>
-        <button type="button" class="btn btn-secondary" onclick="location.href='/account';">Cancel</button>
-    </form>
+            <br/>
+            <div class="mb-3">
+                <label for="email" class="form-label">Email</label>
+                <input type="text" class="form-control" id="email" name="email" value="{{ user.email }}">
+            </div>
+            {% if session.user.is_admin %}
+                <br/>
+                <div class="mb-3">
+                    <input type="checkbox" class="form-check-input" id="is_admin" name="is_admin" value="{{ user.is_admin }}">
+                    <label class="form-check-label" for="is_admin">This user is an administrator</label>
+                </div>
+            {% endif %}
+            <br/>
+            <button type="submit" class="btn btn-primary">Submit</button>
+            <button type="button" class="btn btn-secondary" onclick="location.href='/account';">Cancel</button>
+        </form>
+    </div>
     <br/>
 </div>
 

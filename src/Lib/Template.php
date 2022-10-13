@@ -9,18 +9,18 @@ use Twig\Extension\DebugExtension;
 
 class Template {
 
-    protected $_controller;
-    protected $_action;
+    protected string $controller;
+    protected string $action;
 
-    protected $twig;
+    protected Environment $twig;
 
-    protected $variables = [];
-    private $includes = ['css' => [], 'js' => []];
+    protected array $variables = [];
+    private array $includes = ['css' => [], 'js' => []];
 
     public function __construct($controller, $action)
     {
-        $this->_controller = $controller;
-        $this->_action = $action;
+        $this->controller = $controller;
+        $this->action = $action;
 
         $twig_loader = new FilesystemLoader(DOCROOT . '/view');
         $this->twig = new Environment($twig_loader, [
@@ -30,7 +30,7 @@ class Template {
         $this->twig->addExtension(new DebugExtension());
     }
 
-    public function set($name, $value = false)
+    public function set($name, $value = false): void
     {
         if (is_array($name)) {
             foreach ($name as $key => $value) {
@@ -41,13 +41,22 @@ class Template {
         }
     }
 
-    public function get($name)
+    /**
+     * @return mixed|null
+     */
+    public function get(string $name)
     {
-        if (!empty($this->variables[$name])) {
-            return $this->variables[$name];
-        } else {
-            return false;
-        }
+        return $this->variables[$name] ?? null;
+    }
+
+    public function includeCss(string $content): void
+    {
+        $this->includeExternal('css', $content);
+    }
+
+    public function includeJs(string $content): void
+    {
+        $this->includeExternal('js', $content);
     }
 
     /**
@@ -67,10 +76,16 @@ class Template {
         foreach ($this->includes['css'] as $content) {
             if (is_file(DOCROOT . '/public' . $content)) {
                 //content is a file, create <link> tag
-                $return[] = '<link rel="stylesheet" href="/public' . $content . '" type="text/css" />';
+                $return[] = sprintf(
+                    '<link rel="stylesheet" href="/public%s" type="text/css" />',
+                    $content
+                );
             } else {
                 //content is css rules, create <style> tag
-                $return[] = '<style type="text/css">' . $content . '</style>';
+                $return[] = sprintf(
+                    '<style>%s</style>',
+                    $content
+                );
             }
         }
         return implode("\n", $return);
@@ -83,13 +98,22 @@ class Template {
         foreach ($this->includes['js'] as $content) {
             if (is_file(DOCROOT . '/public' . $content)) {
                 //content is a local file, create <script src="./.."> tag
-                $return[] = '<script type="text/javascript" src="/public' . $content . '"></script>';
+                $return[] = sprintf(
+                    '<script type="text/javascript" src="/public%s"></script>',
+                    $content
+                );
             } elseif (strpos($content, 'http') === 0) {
                 //content is a remote file, create <script src=".."> tag
-                $return[] = '<script type="text/javascript" src="' . $content . '"></script>';
+                $return[] = sprintf(
+                    '<script type="text/javascript" src="%s"></script>',
+                    $content
+                );
             } else {
                 //content is inline javascript, create <script>..</script> tag
-                $return[] = '<script type="text/javascript">' . $content . '</script>';
+                $return[] = sprintf(
+                    '<script>%s</script>',
+                    $content
+                );
             }
         }
         return implode("\n", $return);
@@ -98,25 +122,25 @@ class Template {
     //render the page
     public function fetch(): string
     {
-        if (!is_file(DOCROOT . '/view/' . $this->_controller . '/' . $this->_action . '.twig')) {
-            die('view not found: ' . DOCROOT . "/view/{$this->_controller}/{$this->_action}.twig");
+        if (!is_file(DOCROOT . '/view/' . $this->controller . '/' . $this->action . '.twig')) {
+            die('view not found: ' . DOCROOT . "/view/{$this->controller}/{$this->action}.twig");
             Controller::redirect(sprintf('/errorpage/error500/%s/%s',
-                base64_encode(sprintf('/%s/%s', $this->_controller, $this->_action)),
+                base64_encode(sprintf('/%s/%s', $this->controller, $this->action)),
                 base64_encode($_SERVER['HTTP_REFERER'] ?? '')
             ));
         }
 
         //auto-include css and js for this controller
-        if (is_file(DOCROOT . '/public/css/' . $this->_controller . '.css')) {
-            $this->includeExternal('css', '/css/' . $this->_controller . '.css');
+        if (is_file(DOCROOT . '/public/css/' . $this->controller . '.css')) {
+            $this->includeExternal('css', '/css/' . $this->controller . '.css');
         }
-        if (is_file(DOCROOT . '/public/js/' . $this->_controller . '.js')) {
-            $this->includeExternal('js', '/js/' . $this->_controller . '.js');
+        if (is_file(DOCROOT . '/public/js/' . $this->controller . '.js')) {
+            $this->includeExternal('js', '/js/' . $this->controller . '.js');
         }
 
         $this->variables['included_css'] = $this->getCss();
         $this->variables['included_js'] = $this->getJs();
-        return $this->twig->render($this->_controller . '/' . $this->_action . '.twig', $this->variables);
+        return $this->twig->render($this->controller . '/' . $this->action . '.twig', $this->variables);
     }
 
     //display the page
