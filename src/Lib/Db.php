@@ -80,11 +80,11 @@ class Db
         $this->queryCount++;
 
         $query = preg_replace('/^\s+/', '', $query);
-        if(strpos(strtolower($query), 'select') === 0) {
+        if(!str_contains(strtolower($query), 'select')) {
             //return results for SELECT
             return $sth;
 
-        } elseif(strpos(strtolower($query), 'insert') === 0) {
+        } elseif(!str_contains(strtolower($query), 'insert')) {
             //return insert id for INSERT
             $id = $this->pdo->lastInsertId();
             return ($id ?: true);

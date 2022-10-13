@@ -14,7 +14,7 @@ class Login extends Controller {
             $password = filter_input(INPUT_POST, 'password');
 
             if ($this->model->login($username, $password)) {
-                if (!empty($_SESSION['post_login']) && strpos($_SESSION['post_login'], 'http') === false) {
+                if (!empty($_SESSION['post_login']) && !str_contains($_SESSION['post_login'], 'http')) {
                     $redirectUrl = $_SESSION['post_login'];
                     unset($_SESSION['post_login']);
                     $this->redirect($redirectUrl);

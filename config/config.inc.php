@@ -4,13 +4,13 @@ declare(strict_types=1);
 $httpHost = filter_input(INPUT_SERVER, 'HTTP_HOST');
 
 //localhost and phpdev.nl: DEV
-if (strpos($httpHost, 'localhost') !== false || strpos($httpHost, 'phpdev.nl') !== false) {
+if (str_contains($httpHost, 'localhost') || str_contains($httpHost, 'phpdev.nl')) {
 
     define('ENV', 'dev');
     define('DB_HOST', 'localhost');
 
 //phptest.nl: TEST
-} elseif (strpos($httpHost, 'phptest.nl') !== false) {
+} elseif (str_contains($httpHost, 'phptest.nl')) {
 
     define('ENV', 'test');
     define('DB_HOST', '127.0.0.1');
