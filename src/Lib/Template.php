@@ -102,7 +102,7 @@ class Template {
                     '<script type="text/javascript" src="/public%s"></script>',
                     $content
                 );
-            } elseif (!str_contains($content, 'http')) {
+            } elseif (str_starts_with($content, 'http')) {
                 //content is a remote file, create <script src=".."> tag
                 $return[] = sprintf(
                     '<script type="text/javascript" src="%s"></script>',
