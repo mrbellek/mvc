@@ -24,6 +24,3 @@ if (strpos($httpHost, 'localhost') !== false || strpos($httpHost, 'phpdev.nl') !
 const DB_DATABASE = 'mvc';
 const DB_USERNAME = 'mvc';
 const DB_PASSWORD = 'mYmVc2022';
-
-const SALT = 'MBSalty';
-const WATTS = 'AllMyWatts';
