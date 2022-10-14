@@ -15,7 +15,10 @@ class Controller
     protected string $actionStr;
     protected Template $template;
 
-    protected Model $model;
+    /**
+     * @var Model
+     */
+    protected $model;
     protected $cache;
 
     //page load timer
