@@ -33,6 +33,7 @@ class Controller
     ];
 
     private array $adminPages = [
+        'user',
     ];
 
     //flag to prevent render, for page that just redirect
@@ -57,7 +58,7 @@ class Controller
             //set user session var
             $this->set('session', $_SESSION['user']);
 
-            if (!empty($_SESSION['user']['roles']) && !$_SESSION['user']['roles']['is_admin'] && in_array($controller, $this->adminPages)) {
+            if (empty($_SESSION['user']['is_admin']) && in_array($controller, $this->adminPages)) {
                 $this->setDelayedError('You need to be admin to view this page.');
                 $this->redirect('/');
             }
@@ -141,16 +142,6 @@ class Controller
         header('Location: ' . $url);
         $this->doNotRender = true;
         exit();
-    }
-
-    public function checkAdmin()
-    {
-        if ($_SESSION['user']['is_admin'] === true) {
-            return true;
-        }
-
-        $this->setDelayedError('You must be administrator for that page.');
-        $this->redirect('/');
     }
 
     //render page
