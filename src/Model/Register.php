@@ -61,7 +61,7 @@ class Register extends Model {
 
     private function register(string $username, string $email, string $password, bool $isAdmin = false)
     {
-        $hash = password_hash($password, PASSWORD_BCRYPT, ['cost' => 12]);
+        $hash = hashPassword($password);
 
         $roles = ['ROLE_USER'];
         if ($isAdmin) {
