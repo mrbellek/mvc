@@ -45,16 +45,13 @@ function callHook(string $url, array $routing, array $default)
     $requestUri = filter_input(INPUT_SERVER, 'REQUEST_URI');
     $httpReferrer = filter_input(INPUT_SERVER, 'HTTP_REFERER');
 
-    ini_set('session.gc_maxlifetime', strval(7 * 24 * 3600));
-    ini_set('session.cookie_lifetime', strval(7 * 24 * 3600));
-    session_set_cookie_params(7 * 24 * 3600, '/', '.' . $httpHost);
-    session_start();
-
     require_once(DOCROOT . '/src/Func/include_dir.function.php');
     include_dir(DOCROOT . '/src/Func');
 
     //NB: we use the Composer autoloader to load our class php files for us (as well as packages)
     require_once(DOCROOT . '/vendor/autoload.php');
+
+    MVC\Helper\Session::init($httpHost);
 
     //instancing a class that doesn't exist causes a FATAL, so try/catch doesn't work
     if (!class_exists($controller)) {
