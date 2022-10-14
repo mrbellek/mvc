@@ -22,7 +22,7 @@ class Login extends Controller {
                     $this->redirect('/');
                 }
             } else {
-                $this->setError('Emailadres or password invalid.');
+                $this->setError('Username or password invalid.');
                 $this->set('post', [
                     'username' => $username,
                     'password' => $password,

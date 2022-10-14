@@ -1,0 +1,15 @@
+{% extends "_layout.twig" %}
+
+{% block main_content %}
+<h1>Delete user</h1>
+
+<form method="post">
+    <div class="mb-3">
+        <p>Are you sure you want to delete the user "{{ username }}"?</p>
+        <br/>
+        <button type="submit" class="btn btn-primary">Submit</button>
+        <a class="btn btn-default" href="/user">Cancel</a>
+    </div>
+    <br/>
+</form>
+{% endblock main_content %}

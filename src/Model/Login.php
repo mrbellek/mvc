@@ -32,14 +32,12 @@ class Login extends Model {
                 [':id' => $user['id']]
             );
 
-            $roles = @unserialize($user['roles']);
+            $roles = unserialize($user['roles']);
             $_SESSION['user'] = [
                 'id' => $user['id'],
                 'username' => $user['username'],
                 'email' => $user['email'],
-                'roles' => [
-                    'is_admin' => in_array('ROLE_SUPER_ADMIN', $roles),
-                ],
+                'is_admin' => in_array('ROLE_ADMIN', $roles),
             ];
 
             return true;

@@ -1,0 +1,37 @@
+{% extends "_layout.twig" %}
+
+{% block main_content %}
+    <h1>Users overview</h1>
+
+    <table class="table">
+        <thead></thead>
+        <tr>
+            <th scope="col">ID</th>
+            <th scope="col">Username</th>
+            <th scope="col">Email</th>
+            <th scope="col">Register date</th>
+            <th scope="col">Last login</th>
+            <td><a href="/user/add"><span class="glyphicon glyphicon-plus" title="Add User"></span></a></td>
+        </tr>
+        <tbody>
+        {% for user in users %}
+            <tr>
+                <th scope="row">{{ user.id }}</th>
+                <td>
+                    {{ user.username}}
+                    {% if user.is_admin %}
+                        <span class="glyphicon glyphicon-star" title="Administrator"></span>
+                    {% endif %}
+                </td>
+                <td>{{ user.email}}</td>
+                <td>{{ user.registered_date }}</td>
+                <td>{{ user.last_login }}</td>
+                <td>
+                    <a href="/user/edit/{{ user.id }}"><span class="glyphicon glyphicon-pencil" title="Edit user"></span></a>
+                    <a href="/user/delete/{{ user.id }}"><span class="glyphicon glyphicon-trash" title="Delete user"></span></a>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% endblock main_content %}

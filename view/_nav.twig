@@ -21,8 +21,8 @@
                     <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
                         <li><a href="/home/index">Home</a></li>
 						<li><a href="/blog/">Blog posts</a></li>
-						{% if session.roles.is_admin %}
-                        <li><a href="/home">Home</a>
+						{% if session.is_admin %}
+                        <li><a href="/user">Users</a>
                         </li>{% endif %}
                     </ul>
                 </li>

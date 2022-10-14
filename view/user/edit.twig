@@ -1,0 +1,54 @@
+{% extends "_layout.twig" %}
+
+{% block main_content %}
+    <h1>{{ title }}</h1>
+
+    <form method="post">
+        <div class="mb-3">
+            <label for="username" class="form-label">Username</label>
+            <input type="text" class="form-control" id="username" name="username" value="{{ user.username }}" required="required">
+        </div>
+        <br/>
+        {% if addUser %}
+            <div class="mb-3">
+                <label for="password" class="form-label">Password</label>
+                <input type="password" class="form-control" id="password" name="password" required="required">
+            </div>
+            <br/>
+        {% endif %}
+        <div class="mb-3">
+            <label for="email" class="form-label">Email</label>
+            <input type="text" class="form-control" id="email" name="email" value="{{ user.email }}">
+        </div>
+        <br/>
+        {% if not addUser %}
+        <div class="mb-3">
+            <label for="registered_date" class="form-label">Registration date</label>
+            <input type="text" class="form-control" id="registered_date" name="registered_date" value="{{ user.registered_date }}">
+        </div>
+        <br/>
+        <div class="mb-3">
+            <label for="last_login" class="form-label">Last login</label>
+            <input type="text" class="form-control" id="last_login" name="last_login" value="{{ user.last_login }}">
+        </div>
+        <br/>
+        {% endif %}
+        <div class="mb-3">
+            <input type="checkbox" class="form-check-input" id="enabled" name="enabled" {% if user.enabled %}checked="checked"{% endif %} value="1">
+            <label class="form-check-label" for="enabled">This user account is enabled</label>
+        </div>
+        <br/>
+        <div class="mb-3">
+            {% if session.is_admin %}
+                <input type="checkbox" class="form-check-input" id="is_admin" name="is_admin" {% if user.is_admin %}checked="checked"{% endif %}>
+            {% else %}
+                <input type="checkbox" class="form-check-input" id="is_admin" disabled="disabled" value="{{ user.is_admin }}">
+            {% endif %}
+            <label class="form-check-label" for="is_admin">This user is an administrator</label>
+        </div>
+        <br/>
+        <button type="submit" class="btn btn-primary">Submit</button>
+        <a class="btn btn-default" href="/user">Cancel</a>
+    </form>
+    <br/>
+{% endblock main_content %}
