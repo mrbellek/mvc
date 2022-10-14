@@ -143,6 +143,16 @@ class Controller
         exit();
     }
 
+    public function checkAdmin()
+    {
+        if ($_SESSION['user']['is_admin'] === true) {
+            return true;
+        }
+
+        $this->setDelayedError('You must be administrator for that page.');
+        $this->redirect('/');
+    }
+
     //render page
     public function __destruct()
     {

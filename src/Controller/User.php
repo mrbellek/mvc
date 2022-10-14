@@ -9,8 +9,10 @@ class User extends Controller
 {
     public function index(): void
     {
+        $this->checkAdmin();
+
         $users = $this->model->getAll();
-        if (count($users) === 0) {
+        if (empty($users)) {
             $this->setInfo('No users found.');
         }
 
@@ -25,6 +27,8 @@ class User extends Controller
 
     public function edit($id): void
     {
+        $this->checkAdmin();
+
         if (filter_input(INPUT_SERVER, 'REQUEST_METHOD') === 'POST') {
             $this->editPost($id);
             return;
@@ -46,6 +50,8 @@ class User extends Controller
 
     public function add(): void
     {
+        $this->checkAdmin();
+
         if (filter_input(INPUT_SERVER, 'REQUEST_METHOD') === 'POST') {
             $this->addPost();
             return;
@@ -101,6 +107,8 @@ class User extends Controller
 
     public function delete($id)
     {
+        $this->checkAdmin();
+
         if (filter_input(INPUT_SERVER, 'REQUEST_METHOD') === 'POST') {
             $ret = $this->model->delete(intval($id));
             if ($ret) {
