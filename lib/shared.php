@@ -26,7 +26,7 @@ function callHook(string $url, array $routing, array $default)
 
     //pretty urls, e.g.: http://domain.com/controller/action/queryString
     $controller = array_shift($urlArray);
-    $action = array_shift($urlArray);
+    $action = str_replace(['-', '_'], '', array_shift($urlArray));
     $queryString = $urlArray;
 
     //custom routing
