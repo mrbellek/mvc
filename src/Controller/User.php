@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace MVC\Controller;
 
 use MVC\Lib\Controller;
+use MVC\Helper\Session;
 
 class User extends Controller
 {
@@ -65,7 +66,7 @@ class User extends Controller
 
         $roles = ['ROLE_USER'];
         //only consider 'user is admin' checkbox when current user is actually an admin
-        if (!empty($_SESSION['user']['is_admin']) && !empty(filter_input(INPUT_POST, 'is_admin'))) {
+        if (!empty(Session::get('user')['is_admin']) && !empty(filter_input(INPUT_POST, 'is_admin'))) {
             $roles = ['ROLE_ADMIN'];
         }
 
@@ -87,7 +88,7 @@ class User extends Controller
         $enabled = !empty(filter_input(INPUT_POST, 'enabled'));
 
         $roles = ['ROLE_USER'];
-        if (!empty($_SESSION['user']['is_admin']) && !empty(filter_input(INPUT_POST, 'is_admin'))) {
+        if (!empty(Session::get('user')['is_admin']) && !empty(filter_input(INPUT_POST, 'is_admin'))) {
             $roles = ['ROLE_ADMIN'];
         }
 

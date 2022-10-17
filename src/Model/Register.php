@@ -5,12 +5,14 @@ namespace MVC\Model;
 
 use Exception;
 use MVC\Lib\Model;
+use MVC\Helper\Session;
 
 class Register extends Model {
 
     public function validate(string $username, string $email, string $password, string $passwordVerify) {
 
-        if ($this->userExists($username, $email) && isset($_SESSION['user']) && $_SESSION['user']['username'] !== $username) {
+        $userSession = Session::get('user');
+        if ($this->userExists($username, $email) && $userSession && $userSession['username'] !== $username) {
             throw new Exception('This username or email address is already taken.');
 
         } elseif (!$this->validateEmailSyntax($email)) {

@@ -5,6 +5,7 @@ namespace MVC\Controller;
 
 use Exception;
 use MVC\Lib\Controller;
+use MVC\Helper\Session;
 use MVC\Exception\InvalidPasswordException;
 
 class Account extends Controller
@@ -21,7 +22,7 @@ class Account extends Controller
             return;
         }
 
-        $user = $_SESSION['user'];
+        $user = Session::get('user');
         $this->set('user', $user);
     }
 
@@ -34,7 +35,7 @@ class Account extends Controller
             $roles = ['ROLE_USER'];
         }
         $ret = $this->model->update(
-            intval($_SESSION['user']['id']),
+            intval(Session::get('user')['id']),
             filter_input(INPUT_POST, 'email'),
             $roles,
         );
@@ -53,7 +54,7 @@ class Account extends Controller
             return;
         }
 
-        $userId = intval($_SESSION['user']['id']);
+        $userId = intval(Session::get('user')['id']);
         $oldPassword = filter_input(INPUT_POST, 'oldpassword');
         $newPassword = filter_input(INPUT_POST, 'newpassword');
         $newPasswordVerify = filter_input(INPUT_POST, 'newpassword-verify');

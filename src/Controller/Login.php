@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace MVC\Controller;
 
 use MVC\Lib\Controller;
+use MVC\Helper\Session;
 
 class Login extends Controller {
 
@@ -14,10 +15,10 @@ class Login extends Controller {
             $password = filter_input(INPUT_POST, 'password');
 
             if ($this->model->login($username, $password)) {
-                if (!empty($_SESSION['post_login']) && !str_contains($_SESSION['post_login'], 'http')) {
-                    $redirectUrl = $_SESSION['post_login'];
-                    unset($_SESSION['post_login']);
-                    $this->redirect($redirectUrl);
+                $postLoginUrl = Session::get('post_login');
+                Session::remove('post_login');
+                if (!empty($postLoginUrl) && !str_contains($postLoginUrl, 'http')) {
+                    $this->redirect($postLoginUrl);
                 } else {
                     $this->redirect('/');
                 }
@@ -33,7 +34,7 @@ class Login extends Controller {
 
     public function logout()
     {
-        unset($_SESSION['user']);
+        Session::remove('user');
         $this->redirect('/login');
     }
 }

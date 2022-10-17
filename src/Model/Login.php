@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace MVC\Model;
 
 use MVC\Lib\Model;
+use MVC\Helper\Session;
 
 class Login extends Model {
 
@@ -33,12 +34,12 @@ class Login extends Model {
             );
 
             $roles = unserialize($user['roles']);
-            $_SESSION['user'] = [
+            Session::set('user', [
                 'id' => $user['id'],
                 'username' => $user['username'],
                 'email' => $user['email'],
                 'is_admin' => in_array('ROLE_ADMIN', $roles),
-            ];
+            ]);
 
             return true;
         }

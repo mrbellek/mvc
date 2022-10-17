@@ -12,6 +12,9 @@
         <div class="col-md-12">  
 			<p>{{ text }}</p>
             <p>You can do anything, like <a href="/blog">manage your blog posts</a>, or <a href="/account">view your account details</a>.</p>
+            {% if session.is_admin %}
+                <p>And since you are an administrator, you can also <a href="/user">manage user accounts</a>.</p>
+            {% endif %}
 		</div>
 	</div>
 </div>

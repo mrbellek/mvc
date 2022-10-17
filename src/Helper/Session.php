@@ -22,6 +22,11 @@ class Session
         $_SESSION[$name] = $value;
     }
 
+    public static function getAll(): mixed
+    {
+        return $_SESSION;
+    }
+
     public static function get(string $name): mixed
     {
         return $_SESSION[$name] ?? null;
@@ -29,6 +34,8 @@ class Session
 
     public static function remove(string $name): void
     {
-        unset($_SESSION[$name]);
+        if (isset($_SESSION[$name])) {
+            unset($_SESSION[$name]);
+        }
     }
 }

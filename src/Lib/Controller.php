@@ -7,6 +7,7 @@ use MVC\Lib\Template;
 use MVC\Lib\Db;
 use MVC\Helper\Cache;
 use MVC\Helper\Mailer;
+use MVC\Helper\Session;
 
 class Controller
 {
@@ -54,25 +55,25 @@ class Controller
             $this->cache->clear();
         }
 
-        if (!empty($_SESSION['user'])) {
+        if ($userSession = Session::get('user')) {
             //set user session var
-            $this->set('session', $_SESSION['user']);
+            $this->set('session', $userSession);
 
-            if (empty($_SESSION['user']['is_admin']) && in_array($controller, $this->adminPages)) {
+            if (empty($userSession['is_admin']) && in_array($controller, $this->adminPages)) {
                 $this->setDelayedError('You need to be admin to view this page.');
                 $this->redirect('/');
             }
         } elseif (!in_array($controller, $this->openPages) && !in_array($controller . '/' . $action, $this->openPages)) {
             //show login screen for restricted pages if user is not logged in
             $this->setDelayedError('You need to login to view this page.');
-            $_SESSION['post_login'] = filter_input(INPUT_SERVER, 'REQUEST_URI');
+            Session::set('post_login', filter_input(INPUT_SERVER, 'REQUEST_URI'));
             $this->redirect('/login');
         }
 
         //set any error/warning/info message set in session
-        if (isset($_SESSION['msg'])) {
-            $this->set('_message', $_SESSION['msg']);
-            unset($_SESSION['msg']);
+        if ($msgSession = Session::get('msg')) {
+            $this->set('_message', $msgSession);
+            Session::remove('msg');
         }
 
         //include css
@@ -121,7 +122,7 @@ class Controller
 
     public function setDelayedMessage($sType, $sMessage): void
     {
-        $_SESSION['msg'] = ['type' => $sType, 'message' => $sMessage];
+        Session::set('msg', ['type' => $sType, 'message' => $sMessage]);
     }
 
     //wrapper call for including css
@@ -150,7 +151,7 @@ class Controller
         if (!$this->doNotRender) {
             $this->set('timer_pageload', round(microtime(true) - TIMER_START, 2) . 's');
             $this->set('timer_database', Db::getInstance()->getQueryStats());
-            $this->set('session_print', print_r($_SESSION, true));
+            $this->set('session_print', print_r(Session::getAll(), true));
             $this->template->render();
         }
     }
