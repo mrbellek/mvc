@@ -48,11 +48,19 @@ class Account extends Controller
         $this->redirect('/home');
     }
 
-    public function changepassword()
+    public function changepassword(): void
     {
-        if (filter_input(INPUT_SERVER, 'REQUEST_METHOD') !== 'POST') {
-            return;
+        if (filter_input(INPUT_SERVER, 'REQUEST_METHOD') === 'POST') {
+            $this->changepasswordPost();
         }
+
+        $this->set('no_old_password', Session::get('password-reset-active') === true);
+    }
+
+    private function changepasswordPost(): void
+    {
+        $passwordResetActive = Session::get('password-reset-active');
+        Session::remove('password-reset-active');
 
         $userId = intval(Session::get('user')['id']);
         $oldPassword = filter_input(INPUT_POST, 'oldpassword');
@@ -60,7 +68,10 @@ class Account extends Controller
         $newPasswordVerify = filter_input(INPUT_POST, 'newpassword-verify');
 
         try {
-            $this->model->validatePassword($userId, $oldPassword);
+            //don't require the old password when resetting a password
+            if (!$passwordResetActive) {
+                $this->model->validatePassword($userId, $oldPassword);
+            }
             $this->validateNewPassword($newPassword, $newPasswordVerify);
 
             $this->model->updatePassword($userId, $newPassword);

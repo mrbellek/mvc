@@ -83,9 +83,9 @@ class Login extends Controller {
                 'email' => $user['email'],
                 'is_admin' => in_array('ROLE_ADMIN', $roles),
             ]);
-            $this->setDelayedInfo('Password reset link is validate. You can now change your password.');
+            $this->setDelayedInfo('Password reset link is valid. You can now change your password.');
+            Session::set('password-reset-active', true);
 
-            //@TODO: update page so old password isn't required
             $this->redirect('/account/change-password');
         } else {
             $this->set('validateOk', false);
