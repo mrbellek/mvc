@@ -46,4 +46,39 @@ class Login extends Model {
 
         return false;
     }
+
+    public function getUserByUsername(string $username): ?array
+    {
+        return $this->sql->fetch_single(
+            'SELECT *
+            FROM user
+            WHERE username = :username
+            LIMIT 1',
+            [':username' => $username]
+        );
+    }
+
+    public function getUserByEmail(string $email): ?array
+    {
+        return $this->sql->fetch_single(
+            'SELECT *
+            FROM user
+            WHERE email = :email
+            LIMIT 1',
+            [':email' => $email]
+        );
+    }
+
+    public function validateResetLink(string $checksum): ?array
+    {
+        $result = $this->sql->fetch_single(
+            'SELECT *
+            FROM user
+            WHERE SHA1(CONCAT(email, id, username)) = :checksum
+            LIMIT 1',
+            [':checksum' => $checksum]
+        );
+
+        return $result !== false ? $result : null;
+    }
 }
