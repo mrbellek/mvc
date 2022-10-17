@@ -3,11 +3,13 @@ declare(strict_types=1);
 
 namespace MVC\Lib;
 
+use JetBrains\PhpStorm\NoReturn;
 use MVC\Lib\Template;
 use MVC\Lib\Db;
 use MVC\Helper\Cache;
 use MVC\Helper\Mailer;
 use MVC\Helper\Session;
+use PHPMailer\PHPMailer\Exception as MailerException;
 
 class Controller
 {
@@ -83,9 +85,14 @@ class Controller
         $this->includeJs('https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js');
         $this->includeJs('/js/mvc.js');
 
-        if (!empty(filter_input(INPUT_GET, 'emailtest'))) {
-            $oMail = new Mailer();
-            $oMail->test($_GET['emailtest']);
+        if (!empty($emailTest = filter_input(INPUT_GET, 'emailtest'))) {
+            try {
+                $oMail = new Mailer();
+                $oMail->test($emailTest);
+                $this->setInfo(sprintf('Test email sent to %s successfully', $emailTest));
+            } catch (MailerException $e) {
+                $this->setError(sprintf('Test email to %s failed: %s', $emailTest, $e->getMessage()));
+            }
         }
     }
 
@@ -138,6 +145,7 @@ class Controller
     }
 
     //wrapper call for redirects
+    #[NoReturn]
     public function redirect($url): void
     {
         header('Location: ' . $url);

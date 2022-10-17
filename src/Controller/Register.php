@@ -5,6 +5,7 @@ namespace MVC\Controller;
 
 use MVC\Lib\Controller;
 use Exception;
+use PHPMailer\PHPMailer\PHPMailer;
 
 class Register extends Controller {
 
@@ -20,6 +21,13 @@ class Register extends Controller {
 
                 if ($this->model->validate($username, $email, $password, $passwordVerify)) {
                     if ($this->model->registerAndLogin($username, $email, $password, $admin)) {
+
+                        $mailer = new PHPMailer(true);
+                        $mailer->Subject = 'Welcome to MVC framework!';
+                        $mailer->Body = 'You just registered for MVC framework. Hooray!';
+                        $mailer->addAddress($email);
+                        $mailer->From = 'admin@' . filter_input(INPUT_SERVER, 'SERVER_NAME');
+                        $mailer->send();
 
                         $this->setDelayedInfo('Registration successful.');
                         $this->redirect('/');
