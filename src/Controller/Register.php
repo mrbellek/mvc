@@ -3,8 +3,9 @@ declare(strict_types=1);
 
 namespace MVC\Controller;
 
-use MVC\Lib\Controller;
 use Exception;
+use MVC\Lib\Controller;
+use MVC\Helper\Session;
 use PHPMailer\PHPMailer\PHPMailer;
 
 class Register extends Controller {
@@ -19,8 +20,10 @@ class Register extends Controller {
                 $passwordVerify = filter_input(INPUT_POST, 'passwordVerify');
                 $admin = filter_input(INPUT_POST, 'admin');
 
-                if ($this->model->validate($username, $email, $password, $passwordVerify)) {
-                    if ($this->model->registerAndLogin($username, $email, $password, $admin)) {
+                if ($this->validate($username, $email, $password, $passwordVerify)) {
+                    if ($this->registerAndLogin($username, $email, $password, $admin)) {
+
+                        $this->setDelayedInfo('Registration successful.');
 
                         $mailer = new PHPMailer(true);
                         $mailer->Subject = 'Welcome to MVC framework!';
@@ -29,7 +32,6 @@ class Register extends Controller {
                         $mailer->From = 'admin@' . filter_input(INPUT_SERVER, 'SERVER_NAME');
                         $mailer->send();
 
-                        $this->setDelayedInfo('Registration successful.');
                         $this->redirect('/');
                     } else {
                         $this->setError('Registration failed.');
@@ -51,5 +53,45 @@ class Register extends Controller {
                 ]);
             }
         }
+    }
+
+    public function validate(string $username, string $email, string $password, string $passwordVerify): bool
+    {
+        if ($this->model->userExists($username, $email)) {
+            throw new Exception('This username or email address is already taken.');
+
+        } elseif (!$this->validateEmailSyntax($email)) {
+            throw new Exception('Email adress is invalid.');
+
+        } elseif (empty($password) || empty($passwordVerify)) {
+            throw new Exception('Password is empty.');
+
+        } elseif ($password !== $passwordVerify) {
+            throw new Exception('Passwords aren\'t the same.');
+        }
+
+        return true;
+    }
+
+    public function registerAndLogin(string $username, string $email, string $password, ?string $admin): bool
+    {
+        $isAdmin = !empty($admin);
+        $userId = $this->model->register($username, $email, $password, $isAdmin);
+
+        if ($userId) {
+            return Session::login([
+                'id' => $userId,
+                'username' => $username,
+                'email' => $email,
+                'is_admin' => $isAdmin,
+            ]);
+        }
+
+        return false;
+    }
+
+    private function validateEmailSyntax($email): bool
+    {
+        return filter_var($email, FILTER_VALIDATE_EMAIL) !== false;
     }
 }

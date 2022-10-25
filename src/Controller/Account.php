@@ -70,7 +70,10 @@ class Account extends Controller
         try {
             //don't require the old password when resetting a password
             if (!$passwordResetActive) {
-                $this->model->validatePassword($userId, $oldPassword);
+                $oldPasswordHash = $this->model->getUserPasswordHash($userId);
+                if ($oldPasswordHash && !password_verify($oldPassword, $oldPasswordHash)) {
+                    throw new Exception('Old password is incorrect.');
+                }
             }
             $this->validateNewPassword($newPassword, $newPasswordVerify);
 

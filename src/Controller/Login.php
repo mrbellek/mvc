@@ -15,7 +15,7 @@ class Login extends Controller {
             $username = filter_input(INPUT_POST, 'username');
             $password = filter_input(INPUT_POST, 'password');
 
-            if ($this->model->login($username, $password)) {
+            if ($this->loginUser($username, $password)) {
                 $postLoginUrl = Session::get('post_login');
                 Session::remove('post_login');
                 if (!empty($postLoginUrl) && !str_contains($postLoginUrl, 'http')) {
@@ -31,6 +31,29 @@ class Login extends Controller {
                 ]);
             }
         }
+    }
+
+    private function loginUser(string $username, string $password): bool
+    {
+        if (empty($username) || empty($password)) {
+            return false;
+        }
+
+        $user = $this->model->getUserByUsername($username);
+
+        if ($user && password_verify($password, $user['passwordhash'])) {
+            $this->model->updateUserLastLogin($user['id']);
+
+            $roles = unserialize($user['roles']);
+            return Session::login([
+                'id' => $user['id'],
+                'username' => $user['username'],
+                'email' => $user['email'],
+                'is_admin' => in_array('ROLE_ADMIN', $roles),
+            ]);
+        }
+
+        return false;
     }
 
     public function forgotpassword()
@@ -77,7 +100,7 @@ class Login extends Controller {
 
         if ($user) {
             $roles = unserialize($user['roles']);
-            Session::set('user', [
+            Session::login([
                 'id' => $user['id'],
                 'username' => $user['username'],
                 'email' => $user['email'],
@@ -94,7 +117,7 @@ class Login extends Controller {
 
     public function logout()
     {
-        Session::remove('user');
+        Session::logout();
         $this->redirect('/login');
     }
 }

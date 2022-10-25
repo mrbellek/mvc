@@ -5,35 +5,10 @@ namespace MVC\Model;
 
 use Exception;
 use MVC\Lib\Model;
-use MVC\Helper\Session;
 
 class Register extends Model {
 
-    public function validate(string $username, string $email, string $password, string $passwordVerify) {
-
-        $userSession = Session::get('user');
-        if ($this->userExists($username, $email) && $userSession && $userSession['username'] !== $username) {
-            throw new Exception('This username or email address is already taken.');
-
-        } elseif (!$this->validateEmailSyntax($email)) {
-            throw new Exception('Email adress is invalid.');
-
-        } elseif (empty($password) || empty($passwordVerify)) {
-            throw new Exception('Password is empty.');
-
-        } elseif ($password !== $passwordVerify) {
-            throw new Exception('Passwords aren\'t the same.');
-        }
-
-        return true;
-    }
-
-    private function validateEmailSyntax($email): bool
-    {
-        return filter_var($email, FILTER_VALIDATE_EMAIL) !== false;
-    }
-
-    private function userExists(string $username, string $email): bool
+    public function userExists(string $username, string $email): bool
     {
         $result = $this->sql->fetch_single('
             SELECT *
@@ -50,18 +25,7 @@ class Register extends Model {
         return is_countable($result) && count($result) > 0;
     }
 
-    public function registerAndLogin(string $username, string $email, string $password, ?string $admin): bool
-    {
-        $userId = $this->register($username, $email, $password, !empty($admin));
-
-        if ($userId) {
-            return $this->login($username, $password);
-        }
-
-        return false;
-    }
-
-    private function register(string $username, string $email, string $password, bool $isAdmin = false)
+    public function register(string $username, string $email, string $password, bool $isAdmin = false)
     {
         $hash = hashPassword($password);
 

@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace MVC\Helper;
 
+use InvalidArgumentException;
+
 class Session
 {
     private function __construct() {
@@ -37,5 +39,26 @@ class Session
         if (isset($_SESSION[$name])) {
             unset($_SESSION[$name]);
         }
+    }
+
+    public static function login(array $data): bool
+    {
+        if (empty($data['id']) || empty($data['username'])) {
+            throw new InvalidArgumentException('Login data is invalid, cannot login user.');
+        }
+
+        self::set('user', [
+            'id' => $data['id'],
+            'username' => $data['username'],
+            'email' => $data['email'] ?? null,
+            'is_admin' => $data['isAdmin'] ?? false,
+        ]);
+
+        return true;
+    }
+
+    public static function logout(): void
+    {
+        self::remove('user');
     }
 }
