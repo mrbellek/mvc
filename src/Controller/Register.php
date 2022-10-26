@@ -3,7 +3,9 @@ declare(strict_types=1);
 
 namespace MVC\Controller;
 
-use Exception;
+use MVC\Exception\InvalidPasswordException;
+use MVC\Exception\InvalidEmailException;
+use MVC\Exception\UserExistsException;
 use MVC\Lib\Controller;
 use MVC\Helper\Session;
 use PHPMailer\PHPMailer\PHPMailer;
@@ -43,7 +45,7 @@ class Register extends Controller {
                         ]);
                     }
                 }
-            } catch (Exception $e) {
+            } catch (UserExistsException|InvalidEmailException|InvalidPasswordException $e) {
                 $this->setError($e->getMessage());
                 $this->set('post', [
                     'username' => $username,
@@ -55,19 +57,24 @@ class Register extends Controller {
         }
     }
 
+    /*
+     * @throws UserExistsException
+     * @throws InvalidEmailException
+     * @throws InvalidPasswordException
+     */
     public function validate(string $username, string $email, string $password, string $passwordVerify): bool
     {
         if ($this->model->userExists($username, $email)) {
-            throw new Exception('This username or email address is already taken.');
+            throw new UserExistsException('This username or email address is already taken.');
 
         } elseif (!$this->validateEmailSyntax($email)) {
-            throw new Exception('Email adress is invalid.');
+            throw new InvalidEmailException('Email adress is invalid.');
 
         } elseif (empty($password) || empty($passwordVerify)) {
-            throw new Exception('Password is empty.');
+            throw new InvalidPasswordException('Password is empty.');
 
         } elseif ($password !== $passwordVerify) {
-            throw new Exception('Passwords aren\'t the same.');
+            throw new InvalidPasswordException('Passwords aren\'t the same.');
         }
 
         return true;

@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace MVC\Model;
 
-use Exception;
 use MVC\Lib\Model;
 
 class Register extends Model {

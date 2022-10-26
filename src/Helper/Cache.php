@@ -4,7 +4,7 @@ declare(strict_types=1);
 namespace MVC\Helper;
 
 use Memcached;
-use Exception;
+use MVC\Exception\MemcacheException;
 
 class Cache
 {
@@ -20,7 +20,7 @@ class Cache
 
     /**
      * @return Memcached|MemcacheDummy|null
-     * @throws Exception
+     * @throws MemcacheException
      */
     public static function getInstance()
     {
@@ -33,7 +33,7 @@ class Cache
 
                 } catch(Exception $e) {
 
-                    throw new Exception('Kon niet verbinden met memcached: ' . $e->getMessage());
+                    throw new MemcacheException('Kon niet verbinden met memcached: ' . $e->getMessage());
                 }
             }
 

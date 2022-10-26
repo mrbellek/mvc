@@ -4,7 +4,8 @@ declare(strict_types=1);
 namespace MVC\Lib;
 
 use PDO;
-use Exception;
+use PDOException;
+use MVC\Exception\DatabaseException;
 
 class Db
 {
@@ -19,9 +20,9 @@ class Db
         try {
             $this->pdo = new PDO($dsn, DB_USERNAME, DB_PASSWORD);
             $this->pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-        } catch(Exception $e) {
+        } catch(PDOException $e) {
             if (defined('ENV') && ENV == 'prod') {
-                throw new Exception(sprintf('Database connection to %s failed: %s', DB_HOST, $e->getMessage()));
+                throw new DatabaseException(sprintf('Database connection to %s failed: %s', DB_HOST, $e->getMessage()));
             } else {
                 printf(
                     'Database connection to %s failed. Check config file and database server?<br>Error message: %s<hr>',
@@ -157,24 +158,24 @@ class Db
     }
 
     /**
-     * @throws Exception
+     * @throws DatabaseException
      */
     private function handlePrepareError($sth, $query, $params): void
     {
         if (defined('ENV') && ENV == 'prod') {
-            throw new Exception(sprintf('%s - Prepare failed for query: %s', implode(':', $sth->errorInfo()), $query));
+            throw new DatabaseException(sprintf('%s - Prepare failed for query: %s', implode(':', $sth->errorInfo()), $query));
         } else {
             die(var_dump(implode(':', $this->pdo->errorInfo()), $query, $params));
         }
     }
 
     /**
-     * @throws Exception
+     * @throws DatabaseException
      */
     private function handleExecuteError($sth, $query, $params): void
     {
         if (defined('ENV') && ENV == 'prod') {
-            throw new Exception(sprintf('%s - Execute failed for query: %s', implode(':', $sth->errorInfo()), $query));
+            throw new DatabaseException(sprintf('%s - Execute failed for query: %s', implode(':', $sth->errorInfo()), $query));
         } else {
             die(var_dump(implode(':', $sth->errorInfo()), $query, $params));
         }

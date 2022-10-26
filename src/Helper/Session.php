@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace MVC\Helper;
 
-use InvalidArgumentException;
+use MVC\Exception\InvalidLoginException;
 
 class Session
 {
@@ -41,10 +41,13 @@ class Session
         }
     }
 
+    /*
+     * @throws InvalidLoginException
+     */
     public static function login(array $data): bool
     {
         if (empty($data['id']) || empty($data['username'])) {
-            throw new InvalidArgumentException('Login data is invalid, cannot login user.');
+            throw new InvalidLoginException('Login data is invalid, cannot login user.');
         }
 
         self::set('user', [

@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace MVC\Controller;
 
-use Exception;
 use MVC\Lib\Controller;
 use MVC\Helper\Session;
 use MVC\Exception\InvalidPasswordException;
@@ -72,7 +71,7 @@ class Account extends Controller
             if (!$passwordResetActive) {
                 $oldPasswordHash = $this->model->getUserPasswordHash($userId);
                 if ($oldPasswordHash && !password_verify($oldPassword, $oldPasswordHash)) {
-                    throw new Exception('Old password is incorrect.');
+                    throw new InvalidPasswordException('Old password is incorrect.');
                 }
             }
             $this->validateNewPassword($newPassword, $newPasswordVerify);
@@ -80,7 +79,7 @@ class Account extends Controller
             $this->model->updatePassword($userId, $newPassword);
             $this->setInfo('Password changed succesfully.');
 
-        } catch (Exception $e) {
+        } catch (InvalidPasswordException $e) {
             $this->setError($e->getMessage());
             return;
         }
