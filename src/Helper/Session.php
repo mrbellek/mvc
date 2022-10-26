@@ -51,7 +51,7 @@ class Session
             'id' => $data['id'],
             'username' => $data['username'],
             'email' => $data['email'] ?? null,
-            'is_admin' => $data['isAdmin'] ?? false,
+            'is_admin' => $data['is_admin'] ?? false,
         ]);
 
         return true;
