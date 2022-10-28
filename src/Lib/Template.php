@@ -123,11 +123,15 @@ class Template {
     public function fetch(): string
     {
         if (!is_file(DOCROOT . '/view/' . $this->controller . '/' . $this->action . '.twig')) {
-            die('view not found: ' . DOCROOT . "/view/{$this->controller}/{$this->action}.twig");
-            Controller::redirect(sprintf('/errorpage/error500/%s/%s',
-                base64_encode(sprintf('/%s/%s', $this->controller, $this->action)),
-                base64_encode($_SERVER['HTTP_REFERER'] ?? '')
-            ));
+            if (ENV === 'dev') {
+                die('Template not found: ' . DOCROOT . "/view/{$this->controller}/{$this->action}.twig");
+            } else {
+                Controller::redirect(sprintf(
+                    '/errorpage/error500/%s/%s',
+                    base64_encode(sprintf('/%s/%s', $this->controller, $this->action)),
+                    base64_encode($_SERVER['HTTP_REFERER'] ?? '')
+                ));
+            }
         }
 
         //auto-include css and js for this controller

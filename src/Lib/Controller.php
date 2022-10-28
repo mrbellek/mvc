@@ -57,15 +57,18 @@ class Controller
             $this->cache->clear();
         }
 
-        if ($userSession = Session::get('user')) {
+        $userSession = Session::get('user');
+        if ($userSession) {
             //set user session var
             $this->set('session', $userSession);
+        }
 
-            if (empty($userSession['is_admin']) && in_array($controller, $this->adminPages)) {
-                $this->setDelayedError('You need to be admin to view this page.');
-                $this->redirect('/');
-            }
-        } elseif (!in_array($controller, $this->openPages) && !in_array($controller . '/' . $action, $this->openPages)) {
+        if ($userSession && empty($userSession['is_admin']) && in_array($controller, $this->adminPages)) {
+            $this->setDelayedError('You need to be admin to view this page.');
+            $this->redirect('/');
+        }
+
+        if (!$userSession && !in_array($controller, $this->openPages) && !in_array($controller . '/' . $action, $this->openPages)) {
             //show login screen for restricted pages if user is not logged in
             $this->setDelayedError('You need to login to view this page.');
             Session::set('post_login', filter_input(INPUT_SERVER, 'REQUEST_URI'));
@@ -85,6 +88,7 @@ class Controller
         $this->includeJs('https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js');
         $this->includeJs('/js/mvc.js');
 
+        //allow mailer testing
         if (!empty($emailTest = filter_input(INPUT_GET, 'emailtest'))) {
             try {
                 $oMail = new Mailer();

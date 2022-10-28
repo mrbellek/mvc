@@ -58,7 +58,7 @@ function callHook(string $url, array $routing, array $default)
         if (class_exists('MVC\\Controller\\Errorpage')) {
             redirectNotFound($requestUri, $httpReferrer);
         } else {
-            printf('Controller class not found: %s', $controller);
+            printf('<p>Controller class not found: %s</p><p>Additionally, an error occurred showing the error page.</p>', $controller);
             return;
         }
     }
@@ -68,12 +68,23 @@ function callHook(string $url, array $routing, array $default)
     try {
         $dispatch = new $controller($model, $controllerName, $action);
     } catch (Exception | Error $e) {
-        redirectNotFound($requestUri, $httpReferrer);
+        if (ENV === 'dev') {
+            printf('Error instantiating controller: %s', $e->getMessage());
+            return;
+        } else {
+            redirectNotFound($requestUri, $httpReferrer);
+        }
     }
 
     //call action
     if (method_exists($controller, $action)) {
         call_user_func_array([$dispatch, $action], $queryString);
+    } elseif (ENV === 'dev') {
+        printf(
+            '<p>The action "%s" is missing in controller "%s"</p>',
+            $action,
+            $controller
+        );
     } else {
         redirectNotFound($requestUri, $httpReferrer);
     }
